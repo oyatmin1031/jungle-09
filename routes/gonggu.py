@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request,render_template
+from flask import Blueprint, jsonify, request
 from .. import mongo
 
 bp = Blueprint('gonggu', __name__, url_prefix='/api/gonggu')
@@ -28,11 +28,7 @@ def get_gonggu_list(last_gonggu_id):
 
     except Exception as e:
         print(e)
-        return jsonify()
-    
-@bp.route('/create', methods=['GET'])
-def create_gonggu_page():
-    return render_template('create_post.html')    
+        return jsonify() 
     
 @bp.route('/', methods=['POST'])
 def create_gonggu():

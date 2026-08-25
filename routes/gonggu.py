@@ -43,10 +43,10 @@ def create_gonggu():
     title=request.form.get('title')
     category=request.form.get('category')
     deadline=request.form.get('deadline')
-    max_quantity=request.form.get('max_quantity')
-    unit_amount=request.form.get('unit_amount')
+    max_quantity=int(request.form.get('max_quantity'))
+    unit_amount=int(request.form.get('unit_amount'))
     unit_type=request.form.get('unit_type')
-    unit_price=request.form.get('unit_price')
+    unit_price=int(request.form.get('unit_price'))
     product_link=request.form.get('product_link')
     kakao_link=request.form.get('kakao_link')
     description=request.form.get('description')
@@ -67,8 +67,11 @@ def create_gonggu():
     
     # 3. MongoDB에 insert
     result = mongo.db.gonggu.insert_one(gonggu_data)
+    print(gonggu_data)
     
     # 4. MongoDB가 생성한 _id를 응답으로 반환
     return jsonify({
         "message":"공구 개설 성공"
     })
+    
+    

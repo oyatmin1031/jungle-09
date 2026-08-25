@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 import os
 from pymongo import MongoClient
 from dotenv import load_dotenv
@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return 'Hello, World!'
+    return render_template('index.html')
 
 @app.route('/test')
 def test():

@@ -69,9 +69,17 @@ def login():
 
 # 재발급
 @bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True) # 리프레시 토큰 있는지 확인
 def refresh():
     current_user = get_jwt_identity()
-#아직미구현!!
+    new_access_token = create_access_token(identity=current_user)
+    return jsonify({
+        'data': {
+            'accessToken': new_access_token,
+            'tokenType': 'Bearer',
+            'expiresIn': 1800
+        }
+    }), 200
 
 # 로그아웃
 @bp.route('/logout', methods=['POST'])

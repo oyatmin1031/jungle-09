@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 import os
 # MongoDB 관련 모듈 임포트
 from pymongo import MongoClient
@@ -32,7 +32,7 @@ app.register_blueprint(auth_bp)
 
 @app.route('/')
 def home():
-    return 'Hello, World!'
+    return render_template('index.html')
 
 @app.route('/test')
 def test():

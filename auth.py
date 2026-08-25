@@ -4,6 +4,7 @@ from flask_jwt_extended import (
     set_refresh_cookies, unset_jwt_cookies, jwt_required, get_jwt_identity
 )
 from werkzeug.security import generate_password_hash, check_password_hash
+from app import db
 
 # 이 아래 라우트들은 전부 /api/auth 로 시작함
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -17,10 +18,61 @@ def signup():
     nickname = data.get('nickname')
     
     # 1. DB에서 username 중복 검사
-    
+    if db.users.find_one({'username': username}):
+        return jsonify({'msg': '이미 존재하는 ID입니다'}), 409
+
     # 2. 비밀번호 암호화
     hashed_password = generate_password_hash(password)
     
-    # 3. DB에 유저 정보 저장 (db.users.insert_one)
+    # 3. DB에 유저 정보 저장
+    db.users.insert_one({
+        'username': username,
+        'password': hashed_password,
+        'nickname': nickname
+    })
 
-    return jsonify({"msg": "회원가입 성공"}), 201
+    return jsonify({'msg': "회원가입 성공"}), 201
+
+# 로그인
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    # 1. DB에서 username 조회
+    user = db.users.find_one({'username': username})
+    if not user:
+        return jsonify({'msg': '존재하지 않는 ID입니다'}), 404
+
+    # 2. 비밀번호 확인
+    if not check_password_hash(user['password'], password):
+        return jsonify({'msg': '비밀번호가 일치하지 않습니다'}), 401
+
+    # 3. JWT 토큰 생성
+    access_token = create_access_token(identity=username)
+    refresh_token = create_refresh_token(identity=username)
+
+    response = jsonify({
+            'data': {
+                'msg': '로그인 성공',
+                'accessToken': access_token,
+                'tokenType': 'Bearer',
+                'expiresIn': 1800
+            }
+        })
+
+    # Refresh Token을 쿠키에 설정 (보안상 HttpOnly로 설정, 자동으로 브라우저가 처리)
+    set_refresh_cookies(response, refresh_token)
+    return response, 200
+
+# 재발급
+@auth_bp.route('/refresh', methods=['POST'])
+
+
+# 로그아웃
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    response = jsonify({'msg': '로그아웃 성공'})
+    unset_jwt_cookies(response)
+    return response, 200

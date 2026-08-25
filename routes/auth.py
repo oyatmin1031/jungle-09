@@ -5,7 +5,7 @@ from flask_jwt_extended import (
 )
 from requests import auth
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import mongo
+from .. import mongo
 
 # 이 아래 라우트들은 전부 /api/auth 로 시작함
 bp = Blueprint('auth', __name__, url_prefix='/api/auth')

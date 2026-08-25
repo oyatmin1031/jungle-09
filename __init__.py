@@ -4,7 +4,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_pymongo import PyMongo
 
-from response import CustomJSONProvider
+from .response import CustomJSONProvider
 
 mongo = PyMongo()
 
@@ -31,8 +31,8 @@ def create_app():
     from .routes import gonggu
     from .routes import auth
     app.register_blueprint(main.bp)
-    app.register_blueprint(user.bp, url_prefix='/api/users')
-    app.register_blueprint(gonggu.bp, url_prefix='/api/gonggu')
-    app.register_blueprint(auth.bp, url_prefix='/api/auth')
+    app.register_blueprint(user.bp)
+    app.register_blueprint(gonggu.bp)
+    app.register_blueprint(auth.bp)
 
     return app

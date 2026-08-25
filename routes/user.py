@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
-from app import mongo 
+from .. import mongo 
 
-bp = Blueprint('main', __name__, prefix='/api/users')
+bp = Blueprint('user', __name__, url_prefix='/api/users')
 
 @bp.route('/<user_id>', methods=['GET'])
 def find_user(user_id):

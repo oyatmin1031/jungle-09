@@ -1,0 +1,67 @@
+<html>
+<head>
+<title>게시글 작성</title>
+</head>
+<h1>게시글 작성 테스트</h1>
+<body>
+    <form name="createPost" action="/api/gonggu/" method="post">
+    <div>
+        <label for="title">제목</label>
+        <input type="text" id="title" name="title" class="w-full rounded border" required>
+    </div>
+    <div>
+        <label for="category">카테고리</label>
+        <select id="category" name="category" required>
+            <option value="">카테고리를 선택하세요</option>
+            <option value="electronics">전자/디지털</option>
+            <option value="food">식품</option>
+            <option value="household">생활용품</option>
+            <option value="beauty_health">뷰티/건강</option>
+            <option value="hygiene">위생용품</option>
+            <option value="stationery">문구/학용품</option>
+        </select>
+    </div>
+    <div>
+        <label for="deadline">마감일</label>
+        <input type="date" id="deadline" name="deadline" required>
+    </div>
+    <div>
+        <label for="max_quantity">마감 수량</label>
+        <input type="number" id="max_quantity" name="max_quantity" min="1" required>
+    </div>
+    <div>
+        <label for="unit_amount">주문 당 용량</label>
+        <input type="number" id="unit_amount" name="unit_amount" min="1" required>
+    </div>
+    <div>
+        <label for="unit_type">주문 당 단위</label>
+        <select id="unit_type" name="unit_type" required>
+            <option value="">단위를 선택하세요</option>
+            <option value="g">g</option>
+            <option value="mL">mL</option>
+            <option value="개">개</option>
+        </select>
+    </div>
+    <div>
+        <label for="unit_price">가격</label>
+        <input type="number" id="unit_price" name="unit_price" min="1" required>
+    </div>
+    <div>
+        <label for="product_link">상품 링크</label>
+        <input type="url" id="product_link" name="product_link" required>
+    </div>
+    <div>
+        <label for="kakao_link"> 카카오톡 링크</label>
+        <input type="url" id="kakao_link" name="kakao_link" required>
+    </div>
+    <div>
+        <label for="description">상세설명</label>
+        <textarea id="description" name="description" required></textarea>    
+    </div>
+    <div>
+        <button type="submit">게시글 등록</button>
+    </div>
+</form>
+</body>
+</html>
+            

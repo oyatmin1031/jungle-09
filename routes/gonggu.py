@@ -37,6 +37,7 @@ def create_gonggu():
     """
     # 1. 폼 데이터 받기
     title=request.form.get('title')
+    product_name=request.form.get('product_name')
     category=request.form.get('category')
     deadline=request.form.get('deadline')
     max_quantity=int(request.form.get('max_quantity'))
@@ -50,6 +51,7 @@ def create_gonggu():
     # 2. 게시글 딕셔너리 만들기
     gonggu_data = {
         "title": title,
+        "product_name": product_name,
         "category": category,
         "deadline": deadline,
         "max_quantity": max_quantity,

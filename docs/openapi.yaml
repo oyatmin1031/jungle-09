@@ -56,24 +56,46 @@ paths:
         content:
           application/json:
             schema:
-              &ref: "#/components/schemas/SignupRequest"
+              $ref: "#/components/schemas/SignupRequest"
+      responses:
+        "201":
+          description: 회원가입 성공
+        "409":
+          description: 이미 존재하는 ID
 
 
   /api/auth/refresh:
     post:
-      summary: Access Token 재발금
+      summary: Access Token 재발급
 
       security:
-        - refreshToken: []
+        - cookieAuth: []
+        #쿠키 인증
 
       responses:
         "200":
           description: 재발급 성공
+          #성공했으면, 토큰 재발급 해줘야 함
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
 
-  /api/
       
 
 components:
+  securitySchemes:
+  #로그인 된 유저 구별할 때 쓰시면 될 것 같아용 아마도!!
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+    # 쿠키에 담긴 refresh_token을 인증 수단으로 사용
+      type: apiKey
+      in: cookie
+      name: refresh_token 
+
   schemas:
     
     LoginRequest:
@@ -121,16 +143,33 @@ components:
         data:
           $ref: "#/components/schemas/TokenData"
     
-    LoginResponse:
+    #LoginResponse가 TokenResponse에 Success 여부만 추가되어있는 애라 그냥 뺐습니다 맘에안드시면 문의...
+    # LoginResponse:
+    #   type: object
+    #   required:
+    #     - success
+    #     - data
+      
+    #   properties: 
+    #     success:
+    #       type: boolean
+    #       const: true
+
+    #     data:
+    #       $ref: "#/components/schemas/TokenData"
+
+    SignupRequest:
       type: object
       required:
-        - success
-        - data
-      
+        - username
+        - nickname
+        - password
       properties: 
-        success:
-          type: boolean
-          const: true
-
-        data:
-          $ref: "#/components/schemas/TokenData"
+        username:
+          type: string
+          description: 유저 아이디
+        nickname:
+          type: string
+          description: 화면에 표시될 닉네임
+        password:
+          type: string

@@ -25,6 +25,7 @@
   "homepage": "https://github.com/oyatmin1031/jungle-09#readme",
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
+    "daisyui": "^5.7.22",
     "tailwindcss": "^4.3.3"
   }
 }

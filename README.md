@@ -34,5 +34,5 @@ flask --app . run
 2. tailwindcss 빌드
 
 ```bash
-npx @tailwincss/cli -i ./static/css/input.css -o ./static/css/output.css --watch
+npx @tailwindcss/cli -i ./static/css/input.css -o ./static/css/output.css --watch
 ```

@@ -3,14 +3,15 @@ from flask_jwt_extended import (
     create_access_token, create_refresh_token,
     set_refresh_cookies, unset_jwt_cookies, jwt_required, get_jwt_identity
 )
+from requests import auth
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db
+from app import mongo
 
 # 이 아래 라우트들은 전부 /api/auth 로 시작함
-auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
+bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 # 회원가입
-@auth_bp.route('/signup', methods=['POST'])
+@bp.route('/signup', methods=['POST'])
 def signup():
     data = request.json
     username = data.get('username')
@@ -18,14 +19,14 @@ def signup():
     nickname = data.get('nickname')
     
     # 1. DB에서 username 중복 검사
-    if db.users.find_one({'username': username}):
+    if mongo.db.users.find_one({'username': username}):
         return jsonify({'msg': '이미 존재하는 ID입니다'}), 409
 
     # 2. 비밀번호 암호화
     hashed_password = generate_password_hash(password)
     
     # 3. DB에 유저 정보 저장
-    db.users.insert_one({
+    mongo.db.users.insert_one({
         'username': username,
         'password': hashed_password,
         'nickname': nickname
@@ -34,14 +35,14 @@ def signup():
     return jsonify({'msg': "회원가입 성공"}), 201
 
 # 로그인
-@auth_bp.route('/login', methods=['POST'])
+@bp.route('/login', methods=['POST'])
 def login():
     data = request.json
     username = data.get('username')
     password = data.get('password')
 
     # 1. DB에서 username 조회
-    user = db.users.find_one({'username': username})
+    user = mongo.db.users.find_one({'username': username})
     if not user:
         return jsonify({'msg': '존재하지 않는 ID입니다'}), 404
 
@@ -67,11 +68,13 @@ def login():
     return response, 200
 
 # 재발급
-@auth_bp.route('/refresh', methods=['POST'])
-
+@bp.route('/refresh', methods=['POST'])
+def refresh():
+    current_user = get_jwt_identity()
+#아직미구현!!
 
 # 로그아웃
-@auth_bp.route('/logout', methods=['POST'])
+@bp.route('/logout', methods=['POST'])
 def logout():
     response = jsonify({'msg': '로그아웃 성공'})
     unset_jwt_cookies(response)

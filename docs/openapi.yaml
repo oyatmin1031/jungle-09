@@ -1,0 +1,136 @@
+openapi: 3.2.0
+
+info:
+  title: Jungle 09 API
+  version: 1.0.0
+  description: 공동구매 서비스 API
+
+servers:
+  - url: http://localhost:5000
+    description: Local server
+
+paths:
+  /api/auth/login:
+    post:
+      summary: 로그인
+      description: 로그인을 한다.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+              schema:
+                $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: 로그인 성공
+
+          headers:
+            Set-Cookie:
+              description: HttpOnly Refresh Token 쿠키
+              schema:
+                type: string
+                example: >-
+                  refresh_token=eyJ...;
+                  HttpOnly;
+                  Secure;
+                  SameSite=Lax;
+                  Path=/api/auth/refresh
+
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        
+        "401":
+          description: 로그인 실패
+          
+  
+  /api/auth/signup:
+    post:
+      summary: 회원가입
+      description: 회원가입 요청
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              &ref: "#/components/schemas/SignupRequest"
+
+
+  /api/auth/refresh:
+    post:
+      summary: Access Token 재발금
+
+      security:
+        - refreshToken: []
+
+      responses:
+        "200":
+          description: 재발급 성공
+
+  /api/
+      
+
+components:
+  schemas:
+    
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+
+      properties: 
+        username:
+          type: string
+          example: username
+        
+        password:
+          type: string
+          example: password
+
+    TokenData:
+      type: object
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
+      properties: 
+        accessToken:
+          type: string
+          description: API 인증에 사용할 accessToken
+          example: eyJhbGciOiJIUzI1NiIs...
+        
+        tokenType:
+          type: string
+          example: Bearer
+
+        expiresIn:
+          type: integer
+          description: accessToken 유효 시간(초)
+          example: 1800
+    
+    TokenResponse:
+      type: object
+      required:
+        - data
+
+      properties: 
+        data:
+          $ref: "#/components/schemas/TokenData"
+    
+    LoginResponse:
+      type: object
+      required:
+        - success
+        - data
+      
+      properties: 
+        success:
+          type: boolean
+          const: true
+
+        data:
+          $ref: "#/components/schemas/TokenData"

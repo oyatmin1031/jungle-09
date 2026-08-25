@@ -16,6 +16,13 @@ npm init -y
 npm install -D tailwindcss @tailwindcss/cli
 ```
 
+### JWT 패키지 설치
+
+```bash
+pip install Flask-JWT-Extended werkzeug
+```
+
+
 ### 프로젝트 실행
 
 1. 플라스크 앱을 실행합니다.

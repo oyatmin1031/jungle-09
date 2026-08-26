@@ -236,8 +236,10 @@ def participate_gonggu(gonggu_id):
             }), 400
         # participants 테이블에 넣기
         mongo.db.participants.insert_one(participant_data)        
-        return jsonify({"message": "공구 신청이 완료되었습니다!"}), 201
-
+        return jsonify({
+            "message": "공구 신청이 완료되었습니다!",
+            "kakao_link": gonggu["kakao_link"]
+        }), 201
     except Exception as e:
         print(f"참여 에러: {e}")
         return jsonify({"message": "서버 에러가 발생했습니다."}), 500

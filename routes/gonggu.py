@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request,render_template
+from flask import Blueprint, jsonify, request
 from .. import mongo
 
 bp = Blueprint('gonggu', __name__, url_prefix='/api/gonggu')
@@ -28,11 +28,7 @@ def get_gonggu_list(last_gonggu_id):
 
     except Exception as e:
         print(e)
-        return jsonify()
-    
-@bp.route('/create', methods=['GET'])
-def create_gonggu_page():
-    return render_template('create_post.html')    
+        return jsonify() 
     
 @bp.route('/', methods=['POST'])
 def create_gonggu():
@@ -41,12 +37,13 @@ def create_gonggu():
     """
     # 1. 폼 데이터 받기
     title=request.form.get('title')
+    product_name=request.form.get('product_name')
     category=request.form.get('category')
     deadline=request.form.get('deadline')
-    max_quantity=request.form.get('max_quantity')
-    unit_amount=request.form.get('unit_amount')
+    max_quantity=int(request.form.get('max_quantity'))
+    unit_amount=int(request.form.get('unit_amount'))
     unit_type=request.form.get('unit_type')
-    unit_price=request.form.get('unit_price')
+    unit_price=int(request.form.get('unit_price'))
     product_link=request.form.get('product_link')
     kakao_link=request.form.get('kakao_link')
     description=request.form.get('description')
@@ -54,6 +51,7 @@ def create_gonggu():
     # 2. 게시글 딕셔너리 만들기
     gonggu_data = {
         "title": title,
+        "product_name": product_name,
         "category": category,
         "deadline": deadline,
         "max_quantity": max_quantity,
@@ -67,8 +65,11 @@ def create_gonggu():
     
     # 3. MongoDB에 insert
     result = mongo.db.gonggu.insert_one(gonggu_data)
+    print(gonggu_data)
     
     # 4. MongoDB가 생성한 _id를 응답으로 반환
     return jsonify({
         "message":"공구 개설 성공"
     })
+    
+    

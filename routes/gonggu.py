@@ -182,7 +182,7 @@ def participate_gonggu(gonggu_id):
     공구 참여 API
     """
     try:
-        current_user = get_jwt_identity() # 로그인한 유저 아이디 (신청자 id)
+        current_id = get_jwt_identity() # 로그인한 유저 아이디 (신청자 id)
         data = request.json
         quantity = data.get('quantity', 1) # 프론트에서 보낸 수량 (기본값 1)
         gonggu = mongo.db.gonggu.find_one(
@@ -192,7 +192,7 @@ def participate_gonggu(gonggu_id):
             return jsonify({
             "message": "존재하지 않는 공구입니다."
         }), 404
-        if gonggu['author_username'] == current_user:
+        if gonggu['author_id'] == current_id:
             return jsonify({
                 "message": "본인이 개설한 공구에는 참여할 수 없습니다."
             }), 403
@@ -202,7 +202,7 @@ def participate_gonggu(gonggu_id):
         }), 403
         existing_participant = mongo.db.participants.find_one({
             "gonggu_id": ObjectId(gonggu_id),
-            "user_id": current_user
+            "user_id": current_id
         })
         if existing_participant:
             return jsonify({
@@ -213,7 +213,7 @@ def participate_gonggu(gonggu_id):
 
         participant_data = {
             "gonggu_id": ObjectId(gonggu_id),
-            "user_id": current_user,
+            "user_id": current_id,
             "quantity": quantity
         }
         result=mongo.db.gonggu.update_one(
@@ -259,7 +259,7 @@ def get_my_gonggu_list():
 
         # 내가 참여한 내역(ID와 수량) 가져오기
         participations = list(mongo.db.participants.find(
-            {"_id": ObjectId(current_id)}, 
+            {"user_id": ObjectId(current_id)}, 
             {"gonggu_id": 1, "quantity": 1, "_id": 0}
         ))
 
@@ -273,16 +273,16 @@ def get_my_gonggu_list():
         # 게시글 리스트 조회
         gonggu_ids = list(quantity_map.keys())
         gonggu_list = list(mongo.db.gonggu.find(
-            {"gonggu_id": {"$in": gonggu_ids}}, 
-            {"_id": 0}
+            {"_id": {"$in": gonggu_ids}}
         ))
 
         # 최종 리스트 (제목, 수량, 마감일, 오픈채팅 링크, 공구 상태)
         result = []
         for gonggu in gonggu_list:
-            g_id = gonggu.get("gonggu_id")
+            g_id = gonggu.get("_id")
             
             item = {
+                "_id": str(g_id),
                 "title": gonggu.get("title"),
                 "quantity": quantity_map.get(g_id),
                 "deadline": gonggu.get("deadline"),
@@ -307,8 +307,15 @@ def get_my_created_gonggu_list():
     try:
         current_id = get_jwt_identity() # 로그인한 유저 아이디
         # 내가 개설한 공구 리스트 조회
-        result = list(mongo.db.gonggu.find({"author_id": ObjectId(current_id)}, {"_id":0}))
+        gonggu_list = list(mongo.db.gonggu.find({"author_id": current_id}))
+        
+        result = []
+        for gonggu in gonggu_list:
+            gonggu["_id"] = str(gonggu["_id"]) # ObjectId를 문자열로 변환
+            result.append(gonggu)
+            
         return jsonify({"my_created_gonggu_list": result})
+    
     except Exception as e:
         print(e)
         return jsonify({"message": "서버 에러가 발생했습니다."}), 500
@@ -327,7 +334,7 @@ def update_gonggu_status(gonggu_id):
 
         # 데이터베이스 업데이트 (해당 공구의 작성자가 본인일 때만 수정되도록 조건 추가)
         result = mongo.db.gonggu.update_one(
-            {"gonggu_id": gonggu_id, "author_id": current_id}, 
+            {"_id": ObjectId(gonggu_id), "author_id": current_id}, 
             {"$set": {"status": new_status}}
         )
 

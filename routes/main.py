@@ -7,9 +7,11 @@ bp = Blueprint('main', __name__, url_prefix='/')
 @bp.route('/')
 @jwt_required(optional=True)
 def home():
+
     user_id = get_jwt_identity()
+    print(f"user_id: {user_id}")
     user = mongo.db.users.find_one({'_id': user_id}) if user_id else None
-    return render_template('index.html', username=user.get('username') if user else None)
+    return render_template('index.html', nickname=user.get('nickname') if user else None)
 
    
 @bp.route('/gonggu/create', methods=['GET'])

@@ -31,46 +31,15 @@
       />
       <div class="flex content-center gap-2">
         {% if nickname %}
-        <a href="/gonggu/create">
-          <button type="button">공구 오픈</button>
-        </a>
+
+        <button class="btn content-center" onclick="location.href='/gonggu/create'">공구 오픈</button>
         <div class="content-center">{{nickname}}</div>
         {% else %}
-        <button class="btn">로그인/회원가입</button>
+        <button class="btn" onclick="location.href='/login'">로그인/회원가입</button>
         {% endif %}
 
       </div>
     </header>
-    <main class="w-5xl m-auto">
-      <div class="flex">
-        <div class="mx-2 p-3 flex-5">
-            <div class="grid grid-cols-3 gap-2">
-                {% for i in range(20) %}
-                <div class="card bg-base-100 w-55 shadow-sm">
-                    <figure>
-                        <img src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-                        alt="Shoes" />
-                    </figure>
-                    <div class="card-body">
-                        <h2 class="card-title">card title</h2>
-                        <p>본문</p>
-                    </div>
-                    <ul
-                        tabindex="-1"
-                        class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
-                    >
-                        <li><a>관리하기</a></li>
-                        <li><a>로그아웃</a></li>
-                    </ul>
-                </div>
-                <!-- <div class="content-center">{{username}}</div> -->
-                {% else %}
-                <button class="btn" onclick="location.href = '/login'">
-                    로그인/회원가입
-                </button>
-                {% endif %}
-            </div>
-        </header>
         <main class="w-5xl m-auto">
             <div class="flex">
                 <div class="flex flex-col mx-2 p-3 flex-5">

@@ -47,6 +47,8 @@ def create_gonggu():
     product_link=request.form.get('product_link')
     kakao_link=request.form.get('kakao_link')
     description=request.form.get('description')
+    status='recruiting'
+
     
     # 2. 게시글 딕셔너리 만들기
     gonggu_data = {
@@ -60,7 +62,8 @@ def create_gonggu():
         "unit_price": unit_price,
         "product_link": product_link,
         "kakao_link": kakao_link,
-        "description": description
+        "description": description,
+        "status": status
     }
     
     # 3. MongoDB에 insert

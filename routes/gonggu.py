@@ -117,7 +117,7 @@ def create_gonggu():
 
 
 
- #공구 참여
+# 공구 참여
 @bp.route('/<gonggu_id>/participants', methods=['POST'])
 @jwt_required()
 def participate_gonggu(gonggu_id):
@@ -129,17 +129,17 @@ def participate_gonggu(gonggu_id):
         data = request.json
         quantity = data.get('quantity', 1) # 프론트에서 보낸 수량 (기본값 1)
 
-        participation_data = {
+        participant_data = {
             "gonggu_id": gonggu_id,
             "username": current_user,
             "quantity": quantity
         }
         
         # participants 테이블에 넣기
-        mongo.db.participants.insert_one(participation_data)        
+        mongo.db.participants.insert_one(participant_data)        
         return jsonify({"message": "공구 신청이 완료되었습니다!"}), 201
 
     except Exception as e:
         print(f"참여 에러: {e}")
         return jsonify({"message": "서버 에러가 발생했습니다."}), 500
-    
+

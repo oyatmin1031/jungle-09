@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 import requests
 from bs4 import BeautifulSoup
 from .. import mongo
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from bson import ObjectId
 
 bp = Blueprint('gonggu', __name__, url_prefix='/api/gonggu')
 
@@ -11,7 +13,7 @@ def find_gonggu(gonggu_id):
     공구 검색 API
     """
     try:
-        result = mongo.db.gonggu.find_one({"gonggu_id": gonggu_id}, {"_id":0})
+        result = mongo.db.gonggu.find_one( {"_id": ObjectId(gonggu_id)})
         return jsonify({"gonggu": result})
 
     except Exception as e:
@@ -58,11 +60,17 @@ def get_product_image(product_link):
     return image_url
 
 @bp.route('/', methods=['POST'])
+@jwt_required()
 def create_gonggu():
     """
     공구 생성 API
     """
-    # 1. 폼 데이터 받기
+    # 1. 로그인한 사용자 확인
+    username = get_jwt_identity()
+    user = mongo.db.users.find_one({'username': username})
+    nickname = user["nickname"]
+    
+    # 2. 폼 데이터 받기
     title=request.form.get('title')
     product_name=request.form.get('product_name')
     category=request.form.get('category')
@@ -78,8 +86,10 @@ def create_gonggu():
     status='recruiting'
 
     
-    # 2. 게시글 딕셔너리 만들기
+    # 3. 게시글 딕셔너리 만들기
     gonggu_data = {
+        "author_username": username,
+        "author_nickname": nickname,
         "title": title,
         "product_name": product_name,
         "category": category,
@@ -95,11 +105,11 @@ def create_gonggu():
         "status": status
     }
     
-    # 3. MongoDB에 insert
+    # 4. MongoDB에 insert
     result = mongo.db.gonggu.insert_one(gonggu_data)
     print(gonggu_data)
     
-    # 4. MongoDB가 생성한 _id를 응답으로 반환
+    # 5. MongoDB가 생성한 _id를 응답으로 반환
     return jsonify({
         "message":"공구 개설 성공"
     })

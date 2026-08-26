@@ -152,6 +152,7 @@ def create_gonggu():
         "category": category,
         "deadline": deadline,
         "max_quantity": max_quantity,
+        "current_quantity": 0,
         "unit_amount": unit_amount,
         "unit_type": unit_type,
         "unit_price": unit_price,

@@ -6,32 +6,39 @@ from flask_jwt_extended import get_jwt_identity
 import time
 from .. import mongo
 
+
 bp = Blueprint('sse', __name__, url_prefix='/api/sse')
-
-# def generate_sse(user_id):
-#     """
-#     SSE 이벤트 생성기
-#     """
-#     while True:
-
-#         data =
-#         yield f"event: notice\ndata: {}\n\n"
-#         time.sleep(5)
-
 
 
 @bp.route('/stream', methods=['GET'])
 def stream():
-    # user_id = get_jwt_identity()
-    user_id = "test"
+    user_id = get_jwt_identity()
 
     def event_stream():
+        last_notif = None
         while True:
-            data = json.dumps({"user_id": user_id})
+            # 랭킹
+            # TODO: 신청수에 따른 sort
+            ranking = list(mongo.db.gonggu.find(
+                {"status": "recruiting"},
+                {"_id": 1, "title": 1}
+            ).limit(5))
+            yield f"event:ranking\ndata: {ranking}\n\n"
 
-            yield f"event:notification\ndata: {data}\n\n"
+            # if user_id:
+                # 알림
+                # notifs = list(mongo.db.gonggu.find(
+                #     { $or: [
+                #         {"user_id": user_id, "_id": {&gt: last_notif}},
+                #         {"user_id": user_id, "_"}
+                #     ]}
+                # ))
+                # json_data = json.dumps({"user_id": user_id})
 
-            time.sleep(2)
+                # yield f"event:notification\ndata: {notifs}\n\n"
+
+            time.sleep(5)
+
     return Response(
         response= event_stream(),
         mimetype='text/event-stream',

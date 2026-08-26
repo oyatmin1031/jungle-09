@@ -478,6 +478,10 @@
               console.log('notification connection 성공')
             })
 
+            eventSource.addEventListener("ranking", (e)=>{
+              console.log('ranking connection 성공')
+            })
+
             // error 발생했을 때 호출되는 이벤트 리스너
             eventSource.addEventListener('error', function(e) {
               if (e.readState == EventSource.CLOSED) {

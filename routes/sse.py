@@ -89,10 +89,10 @@ def stream():
         response=event_stream(),
         mimetype="text/event-stream",
         headers={
-            "Content-Type": "text/event-steam",
+            "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "S": "no",
+            "X-Accel-Buffering": "no",
         },
     )
 

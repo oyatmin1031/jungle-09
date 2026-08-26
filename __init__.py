@@ -30,9 +30,11 @@ def create_app():
     from .routes import user
     from .routes import gonggu
     from .routes import auth
+    from .routes import sse
     app.register_blueprint(main.bp)
     app.register_blueprint(user.bp)
     app.register_blueprint(gonggu.bp)
     app.register_blueprint(auth.bp)
+    app.register_blueprint(sse.bp)
 
     return app

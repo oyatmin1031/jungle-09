@@ -94,7 +94,7 @@
             <i class="ti ti-bell"></i>
             알림
           </label>
-          <div class="tab-content bg-base-100 border-base-300 shadow-md p-6">
+          <div id="notif-list" class="tab-content bg-base-100 border-base-300 shadow-md p-6">
             Tab content 1
           </div>
 
@@ -187,7 +187,7 @@
             <ul class="list bg-base-100 overflow-auto">
               {% for gonggu in write_gonggu %}
               <!-- 로그인된 상태면 배열 형태로 오는데 로그인 안된 상태면 None이 들어와서 오류남. 그래서 if문으로 처리함 -->
-              
+
               <li class="list-row cursor-pointer" onclick="location.href = '/gonggu/1'">
                 <div class="flex">
                   <div class="flex-1 justify-between">
@@ -203,7 +203,7 @@
             {% endif %}
           </div>
         </div>
-        <ul class="list bg-base-100 rounded-box border border-base-300 shadow-md">
+        <ul id="ranking-list" class="list bg-base-100 rounded-box border border-base-300 shadow-md">
           <li class="p-4 pb-2 tracking-wide">인기 공구 순위</li>
 
           <li class="list-row gap-2">
@@ -267,10 +267,10 @@
       currentStatus = getCurrentStatus();
       showGongguList();
     });
-     
+
     // 로그아웃 버튼 클릭 이벤트 처리
     const logoutBtn = document.getElementById('logout-btn');
-    
+
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function () {
             // 브라우저(로컬 스토리지)에 저장된 액세스 토큰 삭제
@@ -377,39 +377,89 @@
       );
     }
 
-            // 서버로 접속하려면 이벤트를 생성하는 서버측 스크립트를 URI로 지정하여 EventSource 객체를 생성한다.
-            const eventSource = new EventSource("/api/sse/stream");
+    // 서버로 접속하려면 이벤트를 생성하는 서버측 스크립트를 URI로 지정하여 EventSource 객체를 생성한다.
+    const eventSource = new EventSource("/api/sse/stream");
 
-            // 서버로부터 데이터가 왔을 때 호출되는 이벤트 리스너
-            eventSource.addEventListener('message', function(event) {
-                const data = JSON.parse(event.data);
-                console.log('Received data:', data);
-                // 여기서 데이터를 처리하고 UI를 업데이트할 수 있음.
+    // 서버로부터 데이터가 왔을 때 호출되는 이벤트 리스너
+    eventSource.addEventListener('message', function(event) {
+        const data = JSON.parse(event.data);
+        console.log('Received data:', data);
+        // 여기서 데이터를 처리하고 UI를 업데이트할 수 있음.
+    });
 
+    // connection 되었을 때 호출되는 이벤트 리스너
+    eventSource.addEventListener('open', function(e) {
+      console.log('connection 성공')
+    })
 
-            });
+    eventSource.addEventListener("notification", (e)=>{
+      console.log('notification connection 성공')
 
-            // connection 되었을 때 호출되는 이벤트 리스너
-            eventSource.addEventListener('open', function(e) {
-              console.log('connection 성공')
-            })
+      const notifList = JSON.parse(e.data);
+      renderNotifList(notifList);
+    })
 
-            eventSource.addEventListener("notification", (e)=>{
-              console.log('notification connection 성공')
-            })
+    eventSource.addEventListener("ranking", (e)=>{
+      console.log('ranking connection 성공')
+        const rankingList = JSON.parse(e.data);
+        renderRankingList(rankingList);
+    })
 
-            eventSource.addEventListener("ranking", (e)=>{
-              console.log('ranking connection 성공')
-            })
+    // error 발생했을 때 호출되는 이벤트 리스너
+    eventSource.addEventListener('error', function(e) {
+      if (e.readState == EventSource.CLOSED) {
+        console.log('Connection was closed.');
+      } else {
+        console.error('An error occurred:', e);
+      }
+    })
 
-            // error 발생했을 때 호출되는 이벤트 리스너
-            eventSource.addEventListener('error', function(e) {
-              if (e.readState == EventSource.CLOSED) {
-                console.log('Connection was closed.');
-              } else {
-                console.error('An error occurred:', e);
-              }
-            })
+    function renderNotifList(notif_list) {
+        const notifContainer = document.querySelector(
+            "#notif-list",
+        );
+
+        // 기존 알림 리스트 초기화
+        notifContainer.innerHTML = "";
+
+        // 새로운 알림 리스트 생성
+        notif_list.forEach((item) => {
+            const listItem = document.createElement("div");
+            listItem.className = "notif-item p-2 border-b border-base-300";
+            listItem.textContent = item.message;
+            notifContainer.appendChild(listItem);
+        });
+    }
+
+    function renderRankingList(ranking_list) {
+        const rankingContainer = document.querySelector(
+            "#ranking-list",
+        );
+
+        // 기존 랭킹 리스트 초기화
+        rankingContainer.innerHTML = `
+            <li class="p-4 pb-2 tracking-wide">인기 공구 순위</li>
+        `;
+
+        // 새로운 랭킹 리스트 생성
+        ranking_list.forEach((item, index) => {
+            const listItem = document.createElement("li");
+            listItem.className = "list-row gap-2";
+            listItem.innerHTML = `
+                <div class="text-2xl opacity-30 tabular-nums content-center">
+                    ${String(index + 1).padStart(2, "0")}
+                </div>
+                <div>
+                    <img class="size-10 rounded-box" alt="Tailwind CSS list item" src="${item.image_url}" />
+                </div>
+                <div class="list-col-grow">
+                    <div>${item.title}</div>
+                </div>
+            `;
+            rankingContainer.appendChild(listItem);
+        });
+    }
+
   </script>
 </body>
 

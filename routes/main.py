@@ -1,13 +1,17 @@
 from flask import Blueprint, render_template
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from .. import mongo
 
 bp = Blueprint('main', __name__, url_prefix='/')
 
 @bp.route('/')
+@jwt_required(optional=True)
 def home():
-    # TODO: 로그인 여부 찾는 로직
 
-    return render_template('index.html', username='username')
+    user_id = get_jwt_identity()
+    print(f"user_id: {user_id}")
+    user = mongo.db.users.find_one({'_id': user_id}) if user_id else None
+    return render_template('index.html', nickname=user.get('nickname') if user else None)
 
    
 @bp.route('/gonggu/create', methods=['GET'])

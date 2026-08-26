@@ -51,8 +51,8 @@ def login():
         return jsonify({'msg': '비밀번호가 일치하지 않습니다'}), 401
 
     # 3. JWT 토큰 생성
-    access_token = create_access_token(identity=username)
-    refresh_token = create_refresh_token(identity=username)
+    access_token = create_access_token(identity=user['_id'])
+    refresh_token = create_refresh_token(identity=user['_id'])
 
     response = jsonify({
             'data': {

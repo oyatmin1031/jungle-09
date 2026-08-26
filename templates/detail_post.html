@@ -133,7 +133,13 @@
 
         // 작성자
         if (userState === 'author') {
-            console.log('참여자 관리');
+            fetch(`/api/gonggu/${gongguId}/participants`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
+            });
+
             return;
         }
 

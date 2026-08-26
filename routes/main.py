@@ -10,11 +10,14 @@ bp = Blueprint('main', __name__, url_prefix='/')
 def home():
     user_id = get_jwt_identity()
     print("user_id:", user_id)
+    
     user = mongo.db.users.find_one({'_id': ObjectId(user_id)}) if user_id else None
     write_gonggu = list(mongo.db.gonggu.find({"author_id": user_id})) if user_id else None
     print("write_gonggu:", write_gonggu)
-    return render_template('index.html', nickname=user.get('nickname'), write_gonggu=write_gonggu if user else None)
-
+    # 렌더링 전에 유저 확인 후, 없으면 none
+    nickname = user.get('nickname') if user else None
+    # 렌더링
+    return render_template('index.html', nickname=nickname, write_gonggu=write_gonggu)
 
 @bp.route('/gonggu/create', methods=['GET'])
 def create_gonggu_page():

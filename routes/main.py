@@ -14,12 +14,26 @@ def home():
     print("user_id:", user_id)
 
     user = mongo.db.users.find_one({'_id': ObjectId(user_id)}) if user_id else None
-    write_gonggu = list(mongo.db.gonggu.find({"author_id": user_id})) if user_id else None
-    print("write_gonggu:", write_gonggu)
+
+    # 작성한 공구 가져오기
+    created_gonggu = list(mongo.db.gonggu.find({"author_id": user_id})) if user_id else None
+    print("created_gonggu:", created_gonggu)
+
+    # 참여한 공구 가져오기
+    participated_gonggu = []
+    if user_id:
+        # participants 컬렉션에서 내 참여 내역 찾기
+        participations = list(mongo.db.participants.find({"user_id": user_id}))
+        if participations:
+            # 참여 내역에서 공구 ID들만 뽑아내기
+            gonggu_ids = [item["gonggu_id"] for item in participations]
+            # 해당 ID를 가진 공구 글들을 찾아서 리스트로 만들기
+            participated_gonggu = list(mongo.db.gonggu.find({"_id": {"$in": gonggu_ids}}))
+
     # 렌더링 전에 유저 확인 후, 없으면 none
     nickname = user.get('nickname') if user else None
     # 렌더링
-    return render_template('index.html', nickname=nickname, write_gonggu=write_gonggu)
+    return render_template('index.html', nickname=nickname, created_gonggu=created_gonggu, participated_gonggu=participated_gonggu)
 
 @bp.route('/gonggu/create', methods=['GET'])
 def create_gonggu_page():

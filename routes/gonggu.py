@@ -171,9 +171,96 @@ def create_gonggu():
     return jsonify({
         "message":"공구 개설 성공"
     })
+    
+# 공구 참여자 목록 조회
+@bp.route('/<gonggu_id>/participants', methods=['GET'])
+@jwt_required()
+def get_participants(gonggu_id):
+    current_id = get_jwt_identity()
 
+    gonggu = mongo.db.gonggu.find_one(
+        {"_id": ObjectId(gonggu_id)}
+    )
 
+    # 공구가 없는 경우
+    if gonggu is None:
+        return jsonify({
+            "message": "존재하지 않는 공구입니다."
+        }), 404
 
+    # 작성자가 아닌 경우
+    if gonggu["author_id"] != current_id:
+        return jsonify({
+            "message": "참여자 관리 권한이 없습니다."
+        }), 403
+
+    # 해당 공구에 참여한 사람들 조회
+    participants = list(mongo.db.participants.find({
+        "gonggu_id": ObjectId(gonggu_id)
+    }))
+
+    print(participants)
+
+    # 참여자 닉네임 + 신청 수량 만들기
+    result = []
+
+    for participant in participants:
+        user = mongo.db.users.find_one({
+            "_id": ObjectId(participant["user_id"])
+        })
+
+        result.append({
+            "nickname": user["nickname"],
+            "quantity": participant["quantity"]
+        })
+
+    # 프론트에 결과 보내기
+    return jsonify({
+        "participants": result,
+        "current_quantity": gonggu.get("current_quantity", 0),
+        "max_quantity": gonggu["max_quantity"]
+    }), 200
+    
+# 공구 상세페이지 사용자 상태 확인
+@bp.route('/<gonggu_id>/participation-status', methods=['GET'])
+@jwt_required()
+def get_participation_status(gonggu_id):
+    current_id = get_jwt_identity()
+
+    gonggu = mongo.db.gonggu.find_one(
+        {"_id": ObjectId(gonggu_id)}
+    )
+
+    if gonggu is None:
+        return jsonify({
+            "message": "존재하지 않는 공구입니다."
+        }), 404
+
+    # 작성자
+    if gonggu["author_id"] == current_id:
+        return jsonify({
+            "is_author": True,
+            "is_participant": False
+        }), 200
+
+    # 참여자인지 확인
+    participant = mongo.db.participants.find_one({
+        "gonggu_id": ObjectId(gonggu_id),
+        "user_id": current_id
+    })
+
+    if participant:
+        return jsonify({
+            "is_author": False,
+            "is_participant": True,
+            "kakao_link": gonggu["kakao_link"]
+        }), 200
+
+    # 미참여자
+    return jsonify({
+        "is_author": False,
+        "is_participant": False
+    }), 200
 
 # 공구 참여
 @bp.route('/<gonggu_id>/participants', methods=['POST'])

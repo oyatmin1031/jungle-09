@@ -128,13 +128,54 @@ def participate_gonggu(gonggu_id):
         current_user = get_jwt_identity() # 로그인한 유저 아이디 (신청자 id)
         data = request.json
         quantity = data.get('quantity', 1) # 프론트에서 보낸 수량 (기본값 1)
+        gonggu = mongo.db.gonggu.find_one(
+            {"_id": ObjectId(gonggu_id)}
+        )
+        if gonggu is None:
+            return jsonify({
+            "message": "존재하지 않는 공구입니다."
+        }), 404
+        if gonggu['author_username'] == current_user:
+            return jsonify({
+                "message": "본인이 개설한 공구에는 참여할 수 없습니다."
+            }), 403
+        if gonggu["status"] != "recruiting":
+            return jsonify({
+                "message": "현재 참여할 수 없는 공구입니다."
+        }), 403
+        existing_participant = mongo.db.participants.find_one({
+            "gonggu_id": ObjectId(gonggu_id),
+            "user_id": current_user
+        })
+        if existing_participant:
+            return jsonify({
+               "message": "이미 참여한 공구입니다."
+            }), 400
+            
+        max_quantity = gonggu["max_quantity"]
 
         participant_data = {
-            "gonggu_id": gonggu_id,
-            "username": current_user,
+            "gonggu_id": ObjectId(gonggu_id),
+            "user_id": current_user,
             "quantity": quantity
         }
-        
+        result=mongo.db.gonggu.update_one(
+            {
+                "_id": ObjectId(gonggu_id),
+                "current_quantity": {
+                    "$lte": max_quantity - quantity
+                }
+            },
+            {
+                "$inc": {
+                    "current_quantity": quantity
+                }
+            }
+        )
+        if result.modified_count == 0:
+            return jsonify({
+                "message": "남은 수량보다 많이 신청할 수 없습니다."
+            }), 400
         # participants 테이블에 넣기
         mongo.db.participants.insert_one(participant_data)        
         return jsonify({"message": "공구 신청이 완료되었습니다!"}), 201

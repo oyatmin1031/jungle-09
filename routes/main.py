@@ -11,10 +11,11 @@ def home():
 
     user_id = get_jwt_identity()
     print(f"user_id: {user_id}")
-    user = mongo.db.users.find_one({'_id': user_id}) if user_id else None
+    user = mongo.db.users.find_one({'_id': ObjectId(user_id)}) if user_id else None
+    print(f"user: {user}")
     return render_template('index.html', nickname=user.get('nickname') if user else None)
 
-   
+
 @bp.route('/gonggu/create', methods=['GET'])
 def create_gonggu_page():
     return render_template('create_post.html')
@@ -30,7 +31,7 @@ def gonggu_detail_page(gonggu_id):
     gonggu=gonggu,
     gonggu_id=gonggu_id
     )
-    
+
 @bp.route('/login')
 def login():
     return render_template('login.html')

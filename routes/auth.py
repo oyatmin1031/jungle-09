@@ -3,6 +3,7 @@ from flask_jwt_extended import (
     create_access_token, create_refresh_token,
     set_refresh_cookies, unset_jwt_cookies, jwt_required, get_jwt_identity
 )
+from flask_jwt_extended.utils import set_access_cookies
 from requests import auth
 from werkzeug.security import generate_password_hash, check_password_hash
 from .. import mongo
@@ -17,14 +18,14 @@ def signup():
     username = data.get('username')
     password = data.get('password')
     nickname = data.get('nickname')
-    
+
     # 1. DB에서 username 중복 검사
     if mongo.db.users.find_one({'username': username}):
         return jsonify({'msg': '이미 존재하는 ID입니다'}), 409
 
     # 2. 비밀번호 암호화
     hashed_password = generate_password_hash(password)
-    
+
     # 3. DB에 유저 정보 저장
     mongo.db.users.insert_one({
         'username': username,
@@ -65,6 +66,7 @@ def login():
             }
         })
 
+    set_access_cookies(response, access_token)
     # Refresh Token을 쿠키에 설정 (보안상 HttpOnly로 설정, 자동으로 브라우저가 처리)
     set_refresh_cookies(response, refresh_token)
     return response, 200

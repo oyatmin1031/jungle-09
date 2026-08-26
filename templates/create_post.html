@@ -220,8 +220,10 @@
         const formData = new FormData(form);
         const accessToken = localStorage.getItem("accessToken");
 
+        // 등록 버튼 비활성화
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> 등록 중...';
+        submitBtn.innerHTML =
+         '<span class="loading loading-spinner loading-sm"></span> 등록 중...';
 
         fetch("/api/gonggu/", {
           method: "POST",
@@ -230,18 +232,30 @@
           },
           body: formData,
         })
-          .then((response) => response.json())
-          .then((data) => {
-            alert(data.message);
-            submitBtn.disabled = false;
-            submitBtn.textContent = "게시글 등록";
+          .then(async (response) => {
+            const data = await response.json();
+              
+            // 등록 성공
+            if (response.ok) {
+              alert(data.message);
+              window.location.href = "/";
+            } 
+        // 서버에서 등록 실패 응답
+            else {
+              alert(data.message);
+
+              submitBtn.disabled = false;
+              submitBtn.textContent = "게시글 등록";
+            }
           })
           .catch((err) => {
+            console.error("게시글 등록 오류:", err);
             alert("등록 중 오류가 발생했어요. 다시 시도해 주세요.");
+
             submitBtn.disabled = false;
             submitBtn.textContent = "게시글 등록";
           });
       });
-    </script>
+</script>
   </body>
 </html>

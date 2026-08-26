@@ -262,7 +262,7 @@ def get_my_gonggu_list():
 
         # 내가 참여한 내역(ID와 수량) 가져오기
         participations = list(mongo.db.participants.find(
-            {"user_id": ObjectId(current_id)}, 
+            {"user_id": current_id}, 
             {"gonggu_id": 1, "quantity": 1, "_id": 0}
         ))
 

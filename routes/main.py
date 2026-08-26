@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from .. import mongo
+from bson import ObjectId
 
 bp = Blueprint('main', __name__, url_prefix='/')
 
@@ -18,6 +19,18 @@ def home():
 def create_gonggu_page():
     return render_template('create_post.html')
 
+@bp.route('/gonggu/<gonggu_id>')
+def gonggu_detail_page(gonggu_id):
+    gonggu = mongo.db.gonggu.find_one(
+        {"_id": ObjectId(gonggu_id)}
+    )
+
+    return render_template(
+    'detail_post.html',
+    gonggu=gonggu,
+    gonggu_id=gonggu_id
+    )
+    
 @bp.route('/login')
 def login():
     return render_template('login.html')

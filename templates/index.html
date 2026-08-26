@@ -34,6 +34,7 @@
 
         <button class="btn content-center" onclick="location.href='/gonggu/create'">공구 오픈</button>
         <div class="content-center">{{nickname}}</div>
+
         {% else %}
         <button class="btn" onclick="location.href='/login'">로그인/회원가입</button>
         {% endif %}
@@ -285,7 +286,23 @@
                         <div
                             class="tab-content bg-base-100 border-base-300 shadow-md p-6"
                         >
-                            Tab content 3
+                            <ul class="list bg-base-100 overflow-auto">
+                                {% for gonggu in write_gonggu %}
+                                <li
+                                    class="list-row cursor-pointer"
+                                    onclick="location.href = '/gonggu/1'"
+                                >
+                                    <div class="flex">
+                                        <div class="flex-1 justify-between">
+                                            <div class="truncate">{{gonggu.title}}</div>
+                                            <div class="badge badge-success">
+                                                진행중
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
                         </div>
                     </div>
                     <ul
@@ -424,8 +441,8 @@
                                 />
                               </figure>
                             <div class="card-body p-3">
-                              <h2 class="card-title">${list.title}</h2>
-                              <p>${item.content}</p>
+                              <h2 class="card-title">${item.title}</h2>
+                              <p>${item.description}</p>
                             </div>
                           </div>
                           `;

@@ -22,6 +22,10 @@ def login():
 def register():
     return render_template('register.html')
 
+@bp.route('/mypage')
+def mypage():
+    return render_template('mypage.html')
+
 @bp.route('/test')
 def test():
     mongo.db.posts.insert_one({"title": "로컬에서 EC2로 연결 테스트"})

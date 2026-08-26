@@ -4,6 +4,7 @@ from webbrowser import get
 
 from flask import Blueprint, Flask, Response, make_response
 from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended.view_decorators import jwt_required
 
 from .. import mongo
 
@@ -11,6 +12,7 @@ bp = Blueprint("sse", __name__, url_prefix="/api/sse")
 
 
 @bp.route("/stream", methods=["GET"])
+@jwt_required(optional=True)
 def stream():
     user_id = get_jwt_identity()
 
@@ -56,7 +58,6 @@ def stream():
                     n["_id"] = str(n["_id"])
                     yield f"event: notification\ndata: {json.dumps(n, default=str)}\n\n"
 
-            yield ": ping\n\n"
             time.sleep(5)
 
     # def event_stream():

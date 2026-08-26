@@ -102,17 +102,18 @@
             <input type="radio" name="my_tabs_4" />
             신청한 공구
           </label>
-          <div class="tab-content bg-base-100 border-base-300 shadow-md p-2">
+          <div class="tab-content bg-base-100 border-base-300 shadow-md p-2 overflow-auto">
             {% if not participated_gonggu %}
             <p>신청한 공구가 없습니다.</p>
             {% else %}
-            <ul class="list bg-base-100 overflow-auto">
+            <ul class="list bg-base-100 ">
               {% for gonggu in participated_gonggu %}
               <!-- 로그인된 상태면 배열 형태로 오는데 로그인 안된 상태면 None이 들어와서 오류남. 그래서 if문으로 처리함 -->
               <li class="list-row cursor-pointer" onclick="location.href = '/gonggu/{{gonggu._id}}'">
                 <div class="flex">
                   <div class="flex-1 justify-between">
                     <div class="truncate">title</div>
+                    <!--TODO:  공구 상태에 따라 다른 배지 표시 -->
                     <div class="badge badge-success">
                       진행중
                     </div>
@@ -129,7 +130,7 @@
             <input type="radio" name="my_tabs_4" />
             작성한 공구
           </label>
-          <div class="tab-content bg-base-100 border-base-300 shadow-md p-6">
+          <div class="tab-content bg-base-100 border-base-300 shadow-md p-2 overflow-auto">
             {% if created_gonggu is none %}
             <p>작성한 공구가 없습니다.</p>
             {% else %}
@@ -220,10 +221,7 @@
     // 로그아웃 버튼 클릭 이벤트 처리
     const logoutBtn = document.getElementById('logout-btn');
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function () {
-            // 브라우저(로컬 스토리지)에 저장된 액세스 토큰 삭제
-            localStorage.removeItem('accessToken');
+
 
     if (logoutBtn) {
       logoutBtn.addEventListener('click', function () {
@@ -286,7 +284,7 @@
           const item = toShow[i];
           const card = `
                             <div class="card bg-base-100 w-55 h-60 shadow-sm cursor-pointer"
-                              data-gonggu-id="${item.id}
+                              data-gonggu-id="${item.id}"
                               data-deadline="${item.deadline ?? ""}"
                               onclick="location.href='/gonggu/${item.id}'"
 
@@ -351,7 +349,8 @@
     eventSource.addEventListener("notification", (e)=>{
       console.log('notification connection 성공')
 
-      const notifList = JSON.parse(e.data);
+      const payload = JSON.parse(e.data);
+      const notifList = Array.isArray(payload) ? payload : [payload];
       renderNotifList(notifList);
     })
 
@@ -374,16 +373,19 @@
         const notifContainer = document.querySelector(
             "#notif-list",
         );
+        if (!notifContainer) return;
 
-        // 기존 알림 리스트 초기화
-        notifContainer.innerHTML = "";
+        // 첫 알림일 경우, 기존 알림 초기화
+        if (notifContainer.dataset.ready !== "1") {
+            notifContainer.innerHTML = "";
+            notifContainer.dataset.ready = "1";
+        }
 
-        // 새로운 알림 리스트 생성
         notif_list.forEach((item) => {
             const listItem = document.createElement("div");
             listItem.className = "notif-item p-2 border-b border-base-300";
             listItem.textContent = item.message;
-            notifContainer.appendChild(listItem);
+            notifContainer.prepend(listItem);
         });
     }
 

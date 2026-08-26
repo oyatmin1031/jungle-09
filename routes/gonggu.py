@@ -323,14 +323,8 @@ def participate_gonggu(gonggu_id):
                 "message": "남은 수량보다 많이 신청할 수 없습니다."
             }), 400
         # participants 테이블에 넣기
-        mongo.db.participants.insert_one(participant_data)        
-        return jsonify({
-            "message": "공구 신청이 완료되었습니다!",
-            "kakao_link": gonggu["kakao_link"]
-        }), 201
-
-
-        author_id = mongo.db.gonggu.find_one({"_id": ObjectId(gonggu_id)})["_id"]
+        mongo.db.participants.insert_one(participant_data)
+        author_id = gonggu["author_id"]
 
         mongo.db.notifications.insert_one({
             "user_id": current_id,
@@ -338,14 +332,21 @@ def participate_gonggu(gonggu_id):
             "message": f"공구 참여 신청이 완료되었습니다. 수량: {quantity}",
             "timestamp": datetime.now()
         })
+        user_nickname = mongo.db.users.find_one({"_id": ObjectId(current_id)})["nickname"]
         mongo.db.notifications.insert_one({
             "user_id": author_id,
             "gonggu_id": gonggu_id,
-            "message": f"{current_id}님이 공구에 참여했습니다. 수량: {quantity}",
+            "message": f"{user_nickname}님이 공구에 참여했습니다. 수량: {quantity}",
             "timestamp": datetime.now()
         })
 
-        return jsonify({"message": "공구 신청이 완료되었습니다!"}), 201
+        return jsonify({
+            "message": "공구 신청이 완료되었습니다!",
+            "kakao_link": gonggu["kakao_link"]
+        }), 201
+
+
+
 
     except Exception as e:
         print(f"참여 에러: {e}")
@@ -359,7 +360,7 @@ def participate_gonggu(gonggu_id):
 # 내가 참여한 공구 리스트 조회
 @bp.route('/my_gonggu', methods=['GET'])
 @jwt_required()
-def get_my_gonggu_list():  
+def get_my_gonggu_list():
     """
     내가 참여한 공구 리스트 조회 API
     """
@@ -369,7 +370,7 @@ def get_my_gonggu_list():
 
         # 내가 참여한 내역(ID와 수량) 가져오기
         participations = list(mongo.db.participants.find(
-            {"user_id": ObjectId(current_id)}, 
+            {"user_id": ObjectId(current_id)},
             {"gonggu_id": 1, "quantity": 1, "_id": 0}
         ))
 
@@ -410,7 +411,7 @@ def get_my_gonggu_list():
 # 내가 개설한 공구 리스트 조회
 @bp.route('/my_created_gonggu', methods=['GET'])
 @jwt_required()
-def get_my_created_gonggu_list():  
+def get_my_created_gonggu_list():
     """
     내가 개설한 공구 리스트 조회 API
     """
@@ -444,7 +445,7 @@ def update_gonggu_status(gonggu_id):
 
         # 데이터베이스 업데이트 (해당 공구의 작성자가 본인일 때만 수정되도록 조건 추가)
         result = mongo.db.gonggu.update_one(
-            {"_id": ObjectId(gonggu_id), "author_id": current_id}, 
+            {"_id": ObjectId(gonggu_id), "author_id": current_id},
             {"$set": {"status": new_status}}
         )
 

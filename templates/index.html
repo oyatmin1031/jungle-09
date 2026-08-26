@@ -103,8 +103,13 @@
             신청한 공구
           </label>
           <div class="tab-content bg-base-100 border-base-300 shadow-md p-2">
+            {% if not participated_gonggu %}
+            <p>신청한 공구가 없습니다.</p>
+            {% else %}
             <ul class="list bg-base-100 overflow-auto">
-              <li class="list-row cursor-pointer" onclick="location.href = '/gonggu/1'">
+              {% for gonggu in participated_gonggu %}
+              <!-- 로그인된 상태면 배열 형태로 오는데 로그인 안된 상태면 None이 들어와서 오류남. 그래서 if문으로 처리함 -->
+              <li class="list-row cursor-pointer" onclick="location.href = '/gonggu/{{gonggu._id}}'">
                 <div class="flex">
                   <div class="flex-1 justify-between">
                     <div class="truncate">title</div>
@@ -114,66 +119,10 @@
                   </div>
                 </div>
               </li>
-
-              <li class="list-row">
-                <div>
-                  <div>Ellie Beilish</div>
-                  <div class="text-xs uppercase font-semibold opacity-60">
-                    Bears of a fever
-                  </div>
-                </div>
-                <button class="btn btn-square btn-ghost">
-                  <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none"
-                      stroke="currentColor">
-                      <path d="M6 3L20 12 6 21 6 3z"></path>
-                    </g>
-                  </svg>
-                </button>
-                <button class="btn btn-square btn-ghost">
-                  <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none"
-                      stroke="currentColor">
-                      <path
-                        d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z">
-                      </path>
-                    </g>
-                  </svg>
-                </button>
-              </li>
-
-              <li class="list-row">
-                <div>
-                  <img class="size-10 rounded-box" alt="Tailwind CSS list item"
-                    src="https://img.daisyui.com/images/profile/demo/3@94.webp" />
-                </div>
-                <div>
-                  <div>Sabrino Gardener</div>
-                  <div class="text-xs uppercase font-semibold opacity-60">
-                    Cappuccino
-                  </div>
-                </div>
-                <button class="btn btn-square btn-ghost">
-                  <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none"
-                      stroke="currentColor">
-                      <path d="M6 3L20 12 6 21 6 3z"></path>
-                    </g>
-                  </svg>
-                </button>
-                <button class="btn btn-square btn-ghost">
-                  <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none"
-                      stroke="currentColor">
-                      <path
-                        d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z">
-                      </path>
-                    </g>
-                  </svg>
-                </button>
-              </li>
+              {% endfor %}
             </ul>
-            <a class="link">Click me</a>
+            {% endif %}
+
           </div>
 
           <label class="tab">
@@ -181,14 +130,13 @@
             작성한 공구
           </label>
           <div class="tab-content bg-base-100 border-base-300 shadow-md p-6">
-            {% if write_gonggu is none %}
+            {% if created_gonggu is none %}
             <p>작성한 공구가 없습니다.</p>
             {% else %}
             <ul class="list bg-base-100 overflow-auto">
-              {% for gonggu in write_gonggu %}
+              {% for gonggu in created_gonggu %}
               <!-- 로그인된 상태면 배열 형태로 오는데 로그인 안된 상태면 None이 들어와서 오류남. 그래서 if문으로 처리함 -->
-              
-              <li class="list-row cursor-pointer" onclick="location.href = '/gonggu/1'">
+              <li class="list-row cursor-pointer" onclick="location.href = '/gonggu/{{gonggu._id}}'">
                 <div class="flex">
                   <div class="flex-1 justify-between">
                     <div class="truncate">{{gonggu.title}}</div>
@@ -267,33 +215,33 @@
       currentStatus = getCurrentStatus();
       showGongguList();
     });
-     
+
     // 로그아웃 버튼 클릭 이벤트 처리
     const logoutBtn = document.getElementById('logout-btn');
-    
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function () {
-            // 브라우저(로컬 스토리지)에 저장된 액세스 토큰 삭제
-            localStorage.removeItem('accessToken');
 
-            // 백엔드 API로 로그아웃 요청 (쿠키 삭제용)
-            fetch('/api/auth/logout', {
-                method: 'POST', // 백엔드 설정에 맞게 POST 사용
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.msg); // "로그아웃 성공" 알림창 띄우기
-                window.location.href = '/'; // 메인 페이지(또는 로그인 페이지)로 이동
-            })
-            .catch(error => {
-                console.error('로그아웃 에러:', error);
-                // 혹시 에러가 나더라도 이미 로컬 스토리지 토큰은 지웠으므로 메인으로 튕겨줍니다.
-                window.location.href = '/';
-            });
-        });
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function () {
+        // 브라우저(로컬 스토리지)에 저장된 액세스 토큰 삭제
+        localStorage.removeItem('accessToken');
+
+        // 백엔드 API로 로그아웃 요청 (쿠키 삭제용)
+        fetch('/api/auth/logout', {
+          method: 'POST', // 백엔드 설정에 맞게 POST 사용
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+          .then(response => response.json())
+          .then(data => {
+            alert(data.msg); // "로그아웃 성공" 알림창 띄우기
+            window.location.href = '/'; // 메인 페이지(또는 로그인 페이지)로 이동
+          })
+          .catch(error => {
+            console.error('로그아웃 에러:', error);
+            // 혹시 에러가 나더라도 이미 로컬 스토리지 토큰은 지웠으므로 메인으로 튕겨줍니다.
+            window.location.href = '/';
+          });
+      });
     }
 
     // 상태 탭 변경 이벤트 처리
@@ -377,39 +325,39 @@
       );
     }
 
-            // 서버로 접속하려면 이벤트를 생성하는 서버측 스크립트를 URI로 지정하여 EventSource 객체를 생성한다.
-            const eventSource = new EventSource("/api/sse/stream");
+    // 서버로 접속하려면 이벤트를 생성하는 서버측 스크립트를 URI로 지정하여 EventSource 객체를 생성한다.
+    const eventSource = new EventSource("/api/sse/stream");
 
-            // 서버로부터 데이터가 왔을 때 호출되는 이벤트 리스너
-            eventSource.addEventListener('message', function(event) {
-                const data = JSON.parse(event.data);
-                console.log('Received data:', data);
-                // 여기서 데이터를 처리하고 UI를 업데이트할 수 있음.
+    // 서버로부터 데이터가 왔을 때 호출되는 이벤트 리스너
+    eventSource.addEventListener('message', function (event) {
+      const data = JSON.parse(event.data);
+      console.log('Received data:', data);
+      // 여기서 데이터를 처리하고 UI를 업데이트할 수 있음.
 
 
-            });
+    });
 
-            // connection 되었을 때 호출되는 이벤트 리스너
-            eventSource.addEventListener('open', function(e) {
-              console.log('connection 성공')
-            })
+    // connection 되었을 때 호출되는 이벤트 리스너
+    eventSource.addEventListener('open', function (e) {
+      console.log('connection 성공')
+    })
 
-            eventSource.addEventListener("notification", (e)=>{
-              console.log('notification connection 성공')
-            })
+    eventSource.addEventListener("notification", (e) => {
+      console.log('notification connection 성공')
+    })
 
-            eventSource.addEventListener("ranking", (e)=>{
-              console.log('ranking connection 성공')
-            })
+    eventSource.addEventListener("ranking", (e) => {
+      console.log('ranking connection 성공')
+    })
 
-            // error 발생했을 때 호출되는 이벤트 리스너
-            eventSource.addEventListener('error', function(e) {
-              if (e.readState == EventSource.CLOSED) {
-                console.log('Connection was closed.');
-              } else {
-                console.error('An error occurred:', e);
-              }
-            })
+    // error 발생했을 때 호출되는 이벤트 리스너
+    eventSource.addEventListener('error', function (e) {
+      if (e.readState == EventSource.CLOSED) {
+        console.log('Connection was closed.');
+      } else {
+        console.error('An error occurred:', e);
+      }
+    })
   </script>
 </body>
 

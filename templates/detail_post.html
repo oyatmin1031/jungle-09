@@ -1,106 +1,174 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>공구 상세</title>
-</head>
+    <head>
+        <meta charset="UTF-8" />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/output.css')}}"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+        />
 
-<body>
-    <h1>{{ gonggu.title }}</h1>
-    <p>제품명: {{ gonggu.product_name }}</p>
-    <p>작성자: {{ gonggu.author_nickname }}</p>
-    <img src="{{ gonggu.image_url }}">
-    <p>카테고리: {{ gonggu.category }}</p>
-    <p>마감일: {{ gonggu.deadline }}</p>
-    <p>마감 수량: {{ gonggu.max_quantity }}</p>
+        <script
+            src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+            crossorigin="anonymous"
+        ></script>
+        <title>공구 상세</title>
+    </head>
 
-    <p>
-        주문 단위:
-        {{ gonggu.unit_amount }}{{ gonggu.unit_type }}
-    </p>
+    <body>
+        <header class="my-4 w-5xl m-auto flex justify-between">
+            <a class="content-center" href="/">
+                <h2 class="text-2xl content-center">정글 09</h2>
+            </a>
 
-    <p>가격: {{ gonggu.unit_price }}원</p>
-    <p>상품 링크:
-    <a href="{{ gonggu.product_link }}" target="_blank">
-        상품 보러가기
-    </a>
-    </p>
+            <div class="flex content-center gap-2">
+                {% if nickname %}
 
-    <p>오픈채팅:
-        <a href="{{ gonggu.kakao_link }}" target="_blank">
-            오픈카톡 참여하기
-        </a>
-    </p>
-    <div>
-        <label for="quantity">참여 수량</label>
-        <input
-            type="number"
-            id="quantity"
-            name="quantity"
-            min="1"
-            value="1"
-        >
-    </div>
+                <button
+                    class="btn content-center"
+                    onclick="location.href = '/gonggu/create'"
+                >
+                    공구 오픈
+                </button>
+                <!-- <div class="content-center">{{nickname}}</div> -->
+                <div class="dropdown dropdown-start">
+                    <div tabindex="0" role="button" class="btn m-1">
+                        {{nickname}}
+                    </div>
+                    <ul
+                        tabindex="-1"
+                        class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+                    >
+                        <li><a href="/mypage">마이페이지</a></li>
+                        <li><a id="logout-btn">로그아웃</a></li>
+                    </ul>
+                </div>
 
-    <div>
-        <p>
-            총 금액:
-            <span id="total-price">{{ gonggu.unit_price }}</span>원
-        </p>
-    </div>
+                {% else %}
+                <button class="btn" onclick="location.href = '/login'">
+                    로그인/회원가입
+                </button>
+                {% endif %}
+            </div>
+        </header>
+        <main class="max-w-2xl mx-auto px-6 py-5">
+            <div class="flex justify-between">
+                <h1 class="text-2xl">{{ gonggu.title }}</h1>
+            </div>
+            <div class="flex gap-4 my-4">
+                <img class="w-72 h-72" src="{{ gonggu.image_url }}" />
+                <div class="flex flex-col text-lg">
+                    <div class="flex w-full flex-col">
+                      <div class="grid h-auto">
+                          <p class="">제품명: {{ gonggu.product_name }}</p>
+                          <p class="content-center">카테고리: {{ gonggu.category }}</p>
+                          <p class="">마감일: {{ gonggu.deadline }}</p>
+                          <p>마감 수량: {{ gonggu.max_quantity }}</p>
 
-    <button type="button" id="join-button">
-        공구 참여하기
-    </button>
+                          <p>주문 단위: {{ gonggu.unit_amount }}{{ gonggu.unit_type }}</p>
 
-    <p>상세설명: {{ gonggu.description }}</p>
+                          <p>가격: {{ gonggu.unit_price }}원</p>
+                          <p>
+                              상품 링크:
+                              <a class="link" href="{{ gonggu.product_link }}" target="_blank">
+                                  상품 보러가기
+                              </a>
+                          </p>
+                      </div>
+                      <div class="divider"></div>
+                      <div>
 
-    <p>상태: {{ gonggu.status }}</p>
-</body>
-<script>
-    const joinButton = document.getElementById('join-button');
-    const quantityInput = document.getElementById('quantity');
-    const totalPrice = document.getElementById('total-price');
+                      </div>
+                      <div class="">1 주문당 {{ gonggu.unit_amount }}{{gonggu.unit_type}}, {{ gonggu.unit_price }}원</div>
+                    </div>
+                </div>
 
-    const unitPrice = {{ gonggu.unit_price }};
-    quantityInput.addEventListener('input', function () {
-        const quantity = quantityInput.value;
+            </div>
 
-        totalPrice.textContent = (unitPrice * quantity).toLocaleString();
-    });
+            {% if is_participant %}
+            <p>
+                오픈채팅:
+                <a href="{{ gonggu.kakao_link }}" target="_blank">
+                    오픈카톡 참여하기
+                </a>
+            </p>
+            {% endif %}
+            <div>
+                <label for="quantity">참여 수량</label>
+                <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    min="1"
+                    value="1"
+                />
+            </div>
 
-    const gongguId = "{{ gonggu_id }}";
-    
-    joinButton.addEventListener('click', function () {
-        const quantity = quantityInput.value;
-        const accessToken = localStorage.getItem('accessToken');
+            <div>
+                <p>
+                    총 금액:
+                    <span id="total-price">{{ gonggu.unit_price }}</span>원
+                </p>
+            </div>
 
-        fetch(`/api/gonggu/${gongguId}/participants`, 
-        {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                quantity: Number(quantity)
-            })
-        })
-        .then(async response => {
-            const data = await response.json();
+            <button type="button" id="join-button" class="btn">공구 참여하기</button>
 
-            if (response.ok) {
-                alert(data.message);
-                window.location.href = data.kakao_link;
+            <div class="flex flex-col">
+                <p>상세설명</p>
+                <p>{{ gonggu.description }}</p>
+            </div>
 
-            } else {
-                alert('공구 참여에 실패했습니다: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('공구 참여 중 오류가 발생했습니다.');
+            <p>상태: {{ gonggu.status }}</p>
+        </main>
+    </body>
+    <script>
+        const joinButton = document.getElementById('join-button');
+        const quantityInput = document.getElementById('quantity');
+        const totalPrice = document.getElementById('total-price');
+
+        const unitPrice = {{ gonggu.unit_price }};
+        quantityInput.addEventListener('input', function () {
+            const quantity = quantityInput.value;
+
+            totalPrice.textContent = (unitPrice * quantity).toLocaleString();
         });
-    });   
-</script>
+
+        const gongguId = "{{ gonggu_id }}";
+
+        joinButton.addEventListener('click', function () {
+            const quantity = quantityInput.value;
+            const accessToken = localStorage.getItem('accessToken');
+
+            fetch(`/api/gonggu/${gongguId}/participants`,
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    quantity: Number(quantity)
+                })
+            })
+            .then(async response => {
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message);
+                    window.location.href = data.kakao_link;
+
+                } else {
+                    alert('공구 참여에 실패했습니다: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('공구 참여 중 오류가 발생했습니다.');
+            });
+        });
+    </script>
 </html>

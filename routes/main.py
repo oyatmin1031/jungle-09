@@ -1,3 +1,5 @@
+from operator import is_
+
 from flask import Blueprint, render_template
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from .. import mongo
@@ -10,7 +12,7 @@ bp = Blueprint('main', __name__, url_prefix='/')
 def home():
     user_id = get_jwt_identity()
     print("user_id:", user_id)
-    
+
     user = mongo.db.users.find_one({'_id': ObjectId(user_id)}) if user_id else None
     write_gonggu = list(mongo.db.gonggu.find({"author_id": user_id})) if user_id else None
     print("write_gonggu:", write_gonggu)
@@ -24,13 +26,24 @@ def create_gonggu_page():
     return render_template('create_post.html')
 
 @bp.route('/gonggu/<gonggu_id>')
+@jwt_required(optional=True)
 def gonggu_detail_page(gonggu_id):
+    user_id = get_jwt_identity()
+    user = mongo.db.users.find_one({'_id': ObjectId(user_id)}) if user_id else None
+    nickname = user.get('nickname') if user else None
+
+    is_author = mongo.db.gonggu.find_one({"_id": ObjectId(gonggu_id), "author_id": user_id}) is not None if user_id else False
+    is_partisipant = mongo.db.participant.find_one({"gonggu_id": gonggu_id, "user_id": user_id}) is not None if user_id else False
+
     gonggu = mongo.db.gonggu.find_one(
         {"_id": ObjectId(gonggu_id)}
     )
 
     return render_template(
     'detail_post.html',
+    nickname=nickname,
+    is_author=is_author,
+    is_partisipant=is_partisipant,
     gonggu=gonggu,
     gonggu_id=gonggu_id
     )

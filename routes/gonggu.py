@@ -89,31 +89,31 @@ def get_gonggu_list():
 
     except Exception as e:
         print(e)
-        return jsonify({"error": "An error occurred while fetching gonggu list"}), 500 
-    
-def get_product_image(product_link): 
+        return jsonify({"error": "An error occurred while fetching gonggu list"}), 500
+
+def get_product_image(product_link):
     try:
         response = requests.get(product_link)
         print("TEST_PRODUCT_RESPONSE =", response.status_code)
-        
+
         soup = BeautifulSoup(response.text, 'html.parser')
-        
+
         image_meta = soup.find(
             "meta",
             attrs={"property": "og:image"}
         )
-        
+
         print("찾은 이미지 태그:", image_meta)
-        
+
         if image_meta:
             image_url = image_meta.get("content")
         else:
             image_url = "/static/images/default_product.png"
-            
+
     except Exception as e:
         print("이미지 불러오기 실패:", e)
         image_url = "/static/images/default_product.png"
-    
+
     return image_url
 
 @bp.route('/', methods=['POST'])
@@ -126,7 +126,7 @@ def create_gonggu():
     user_id = get_jwt_identity()
     user = mongo.db.users.find_one({'_id': ObjectId(user_id)})
     nickname = user["nickname"]
-    
+
     # 2. 폼 데이터 받기
     title=request.form.get('title')
     product_name=request.form.get('product_name')
@@ -142,7 +142,7 @@ def create_gonggu():
     description=request.form.get('description')
     status='recruiting'
 
-    
+
     # 3. 게시글 딕셔너리 만들기
     gonggu_data = {
         "author_id": user_id,
@@ -162,16 +162,16 @@ def create_gonggu():
         "image_url": image_url,
         "status": status
     }
-    
+
     # 4. MongoDB에 insert
     result = mongo.db.gonggu.insert_one(gonggu_data)
     print(gonggu_data)
-    
+
     # 5. MongoDB가 생성한 _id를 응답으로 반환
     return jsonify({
         "message":"공구 개설 성공"
     })
-    
+
 
 
 
@@ -217,6 +217,7 @@ def participate_gonggu(gonggu_id):
             "user_id": current_id,
             "quantity": quantity
         }
+
         result=mongo.db.gonggu.update_one(
             {
                 "_id": ObjectId(gonggu_id),
@@ -240,6 +241,25 @@ def participate_gonggu(gonggu_id):
             "message": "공구 신청이 완료되었습니다!",
             "kakao_link": gonggu["kakao_link"]
         }), 201
+
+
+        author_id = mongo.db.gonggu.find_one({"_id": ObjectId(gonggu_id)})["_id"]
+
+        mongo.db.notifications.insert_one({
+            "user_id": current_id,
+            "gonggu_id": gonggu_id,
+            "message": f"공구 참여 신청이 완료되었습니다. 수량: {quantity}",
+            "timestamp": datetime.now()
+        })
+        mongo.db.notifications.insert_one({
+            "user_id": author_id,
+            "gonggu_id": gonggu_id,
+            "message": f"{current_id}님이 공구에 참여했습니다. 수량: {quantity}",
+            "timestamp": datetime.now()
+        })
+
+        return jsonify({"message": "공구 신청이 완료되었습니다!"}), 201
+
     except Exception as e:
         print(f"참여 에러: {e}")
         return jsonify({"message": "서버 에러가 발생했습니다."}), 500

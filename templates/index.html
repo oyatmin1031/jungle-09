@@ -456,6 +456,36 @@
                     $last.attr("data-deadline"),
                 );
             }
+
+            // 서버로 접속하려면 이벤트를 생성하는 서버측 스크립트를 URI로 지정하여 EventSource 객체를 생성한다.
+            const eventSource = new EventSource("/api/sse/stream");
+
+            // 서버로부터 데이터가 왔을 때 호출되는 이벤트 리스너
+            eventSource.addEventListener('message', function(event) {
+                const data = JSON.parse(event.data);
+                console.log('Received data:', data);
+                // 여기서 데이터를 처리하고 UI를 업데이트할 수 있음.
+
+
+            });
+
+            // connection 되었을 때 호출되는 이벤트 리스너
+            eventSource.addEventListener('open', function(e) {
+              console.log('connection 성공')
+            })
+
+            eventSource.addEventListener("notification", (e)=>{
+              console.log('notification connection 성공')
+            })
+
+            // error 발생했을 때 호출되는 이벤트 리스너
+            eventSource.addEventListener('error', function(e) {
+              if (e.readState == EventSource.CLOSED) {
+                console.log('Connection was closed.');
+              } else {
+                console.error('An error occurred:', e);
+              }
+            })
         </script>
     </body>
 </html>

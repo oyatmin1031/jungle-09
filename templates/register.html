@@ -1,0 +1,169 @@
+<!-- 회원가입 페이지 -->
+
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css')}}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <title>정글09 회원가입</title>
+</head>
+
+<body>
+    <header class="my-4 w-5xl m-auto flex justify-between">
+        <h2 class="text-2xl content-center">정글 09</h2>
+    </header>
+
+    <main class="flex-grow bg-white rounded-box shadow-sm flex items-center justify-center p-4">
+
+        <div class="card bg-[#d9d9d9] w-full max-w-md shrink-0">
+            <div class="card-body p-8 sm:p-10">
+
+                <!-- 타이틀 -->
+                <h2 class="card-title justify-center text-2xl font-bold mb-4 text-gray-900">회원가입</h2>
+
+                <form id="register-form" class="flex flex-col gap-3">
+                    <!-- 아이디 입력 -->
+                    <div class="form-control">
+                        <label class="label pb-1" for="username">
+                            <span class="label-text font-semibold text-gray-800">아이디</span>
+                        </label>
+                        <input type="text" id="username"
+                            class="input bg-[#f0f0f0] border-none w-full focus:outline-none focus:ring-2 focus:ring-gray-300" />
+                    </div>
+
+                    <!-- 닉네임 입력 -->
+                    <div class="form-control">
+                        <label class="label pb-1" for="nickname">
+                            <span class="label-text font-semibold text-gray-800">닉네임</span>
+                        </label>
+                        <input type="text" id="nickname"
+                            class="input bg-[#f0f0f0] border-none w-full focus:outline-none focus:ring-2 focus:ring-gray-300" />
+                    </div>
+
+                    <!-- 비밀번호 입력 -->
+                    <div class="form-control">
+                        <label class="label pb-1" for="password">
+                            <span class="label-text font-semibold text-gray-800">비밀번호</span>
+                        </label>
+                        <input type="password" id="password"
+                            class="input bg-[#f0f0f0] border-none w-full focus:outline-none focus:ring-2 focus:ring-gray-300" />
+                    </div>
+
+                    <!-- 비밀번호 확인 -->
+                    <div class="form-control">
+                        <label class="label pb-1" for="confirm-password">
+                            <span class="label-text font-semibold text-gray-800">비밀번호 확인</span>
+                        </label>
+                        <input type="password" id="confirm-password"
+                            class="input bg-[#f0f0f0] border-none w-full focus:outline-none focus:ring-2 focus:ring-gray-300" />
+                        <!-- 불일치 에러 메시지 -->
+                        <p id="password-error" class="text-red-500 text-xs mt-1 hidden">비밀번호가 일치하지 않습니다.</p>
+                    </div>
+
+                    <!-- 회원가입 버튼 -->
+                    <!-- 클릭 후 메인 화면으로 이동해야 함 (아직 미반영) -->
+                    <div class="form-control mt-4">
+                        <button type="submit"
+                            class="btn w-full bg-[#f0f0f0] hover:bg-gray-300 border-none text-gray-800 text-base font-semibold">
+                            회원가입
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const errorMessage = document.getElementById('password-error');
+        const form = document.getElementById('register-form');
+
+        // 비밀번호가 일치하는지 실시간으로 확인
+        function checkPasswords() {
+            const pw = passwordInput.value;
+            const confirmPw = confirmPasswordInput.value;
+
+            // 비밀번호 확인란에 입력값이 있을 때만 검사
+            if (confirmPw !== '') {
+                if (pw !== confirmPw) {
+                    errorMessage.classList.remove('hidden'); // 에러 표시
+                } else {
+                    errorMessage.classList.add('hidden'); // 에러 숨김
+                }
+            } else {
+                errorMessage.classList.add('hidden');
+            }
+        }
+
+        // 입력할 때마다 함수 실행
+        passwordInput.addEventListener('input', checkPasswords);
+        confirmPasswordInput.addEventListener('input', checkPasswords);
+
+
+        // 회원가입 폼 제출
+        $('#register-form').on('submit', function (event) {
+            // 폼 제출 시 새로고침 방지
+            event.preventDefault();
+
+            const username = $('#username').val();
+            const nickname = $('#nickname').val();
+            const password = $('#password').val();
+            const confirmPassword = $('#confirm-password').val();
+
+            // 빈 값 및 비밀번호 일치 여부 확인
+            if (!isValid(username, nickname, password, confirmPassword)) {
+                return;
+            }
+
+            // AJAX 통신 시작
+            $.ajax({
+                type: 'POST',
+                url: '/api/auth/signup', // 백엔드 회원가입 API 주소로 변경
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    username: username,
+                    nickname: nickname, // nickname 데이터 추가
+                    password: password
+                }),
+                success: function (response) {
+                    // 성공 시 (상태 코드 201)
+                    alert('회원가입이 완료되었습니다! 로그인해주세요.');
+                    window.location.href = '/login'; // 가입 성공 후 로그인 페이지로 이동
+                },
+                error: function (xhr) {
+                    // 실패 시 (이미 존재하는 ID 등 상태 코드 409)
+                    if (xhr.responseJSON && xhr.responseJSON.msg) {
+                        alert(xhr.responseJSON.msg);
+                    } else {
+                        alert('서버와 통신 중 에러가 발생했습니다.');
+                    }
+                }
+            });
+        });
+
+
+        // 값 모두 유효한지 검사
+        function isValid(username, nickname, password, confirmPassword) {
+            if (username === "" || nickname === "" || password === "" || confirmPassword === "") {
+                alert('모든 필드를 입력해주세요.');
+                return false;
+            }
+            if (password !== confirmPassword) {
+                alert('비밀번호가 일치하지 않습니다.');
+                confirmPasswordInput.focus();
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+
+</html>

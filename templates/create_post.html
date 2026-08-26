@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+    />
+    <title>정글09 - 공구 오픈</title>
+  </head>
+  <body class="bg-base-200 min-h-screen">
+    <main class="max-w-2xl mx-auto px-6 py-10">
+      <h2 class="text-2xl mb-6">정글 09</h2>
+      <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+          <h1 class="text-xl font-semibold mb-1">공구 오픈하기</h1>
+          <p class="text-sm opacity-60 mb-6">
+            공구를 오픈할 상품의 정보를 입력해 주세요.
+          </p>
+
+          <form id="create-post-form" class="flex flex-col gap-5">
+            <!-- 제목 -->
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">
+                제목 <span class="text-error">*</span>
+              </legend>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                placeholder="예) 후르츠칸탈로프 사과 5kg 같이 사요"
+                class="input input-bordered w-full"
+                required
+              />
+            </fieldset>
+
+            <!-- 제품명 + 카테고리 -->
+            <div class="grid grid-cols-3 gap-4">
+              <fieldset class="fieldset col-span-2">
+                <legend class="fieldset-legend">
+                  제품명 <span class="text-error">*</span>
+                </legend>
+                <input
+                  type="text"
+                  id="product_name"
+                  name="product_name"
+                  placeholder="예) 진짜대박 꿀사과"
+                  class="input input-bordered w-full"
+                  required
+                />
+              </fieldset>
+
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend">
+                  카테고리 <span class="text-error">*</span>
+                </legend>
+                <select
+                  id="category"
+                  name="category"
+                  class="select select-bordered w-full"
+                  required
+                >
+                  <option value="" disabled selected>선택</option>
+                  <option value="electronics">전자/디지털</option>
+                  <option value="food">식품</option>
+                  <option value="household">생활용품</option>
+                  <option value="beauty_health">뷰티/건강</option>
+                  <option value="hygiene">위생용품</option>
+                  <option value="stationery">문구/학용품</option>
+                </select>
+              </fieldset>
+            </div>
+
+            <div class="divider my-0"></div>
+
+            <!-- 마감일 -->
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">
+                마감일 <span class="text-error">*</span>
+              </legend>
+              <input
+                type="date"
+                id="deadline"
+                name="deadline"
+                class="input input-bordered w-full"
+                required
+              />
+            </fieldset>
+
+            <!-- 마감 수량 -->
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">
+                마감 수량 <span class="text-error">*</span>
+              </legend>
+              <label class="input input-bordered w-full flex items-center gap-2">
+                <input
+                  type="number"
+                  id="max_quantity"
+                  name="max_quantity"
+                  min="1"
+                  class="grow"
+                  required
+                />
+              </label>
+            </fieldset>
+
+            <!-- 주문당 용량/단위/가격 -->
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">
+                1주문당 용량 · 가격 <span class="text-error">*</span>
+              </legend>
+              <div class="grid grid-cols-3 gap-3">
+                <input
+                  type="number"
+                  id="unit_amount"
+                  name="unit_amount"
+                  min="1"
+                  placeholder="용량"
+                  class="input input-bordered w-full"
+                  required
+                />
+                <select
+                  id="unit_type"
+                  name="unit_type"
+                  class="select select-bordered w-full"
+                  required
+                >
+                  <option value="" disabled selected>단위</option>
+                  <option value="g">g</option>
+                  <option value="mL">mL</option>
+                  <option value="개">개</option>
+                </select>
+                <label class="input input-bordered w-full flex items-center gap-2">
+                  <input
+                    type="number"
+                    id="unit_price"
+                    name="unit_price"
+                    min="1"
+                    placeholder="가격"
+                    class="grow"
+                    required
+                  />
+                  <span class="opacity-50 text-sm">원</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="divider my-0"></div>
+
+            <!-- 링크 -->
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">
+                상품 링크 <span class="text-error">*</span>
+              </legend>
+              <label class="input input-bordered w-full flex items-center gap-2">
+                <i class="ti ti-link text-base opacity-50"></i>
+                <input
+                  type="url"
+                  id="product_link"
+                  name="product_link"
+                  placeholder="https://"
+                  class="grow"
+                  required
+                />
+              </label>
+            </fieldset>
+
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">
+                오픈채팅 링크 <span class="text-error">*</span>
+              </legend>
+              <label class="input input-bordered w-full flex items-center gap-2">
+                <i class="ti ti-brand-kakotalk text-base opacity-50"></i>
+                <input
+                  type="url"
+                  id="kakao_link"
+                  name="kakao_link"
+                  placeholder="https://open.kakao.com/..."
+                  class="grow"
+                  required
+                />
+              </label>
+            </fieldset>
+
+            <!-- 상세설명 -->
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">상세설명</legend>
+              <textarea
+                id="description"
+                name="description"
+                rows="5"
+                placeholder="참여자들에게 전달할 안내사항을 자유롭게 작성해 주세요."
+                class="textarea textarea-bordered w-full"
+              ></textarea>
+            </fieldset>
+
+            <div class="flex justify-end gap-2 mt-2">
+              <a href="/" class="btn btn-ghost">취소</a>
+              <button type="submit" id="submit-btn" class="btn btn-primary">
+                게시글 등록
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const form = document.getElementById("create-post-form");
+      const submitBtn = document.getElementById("submit-btn");
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const formData = new FormData(form);
+        const accessToken = localStorage.getItem("accessToken");
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> 등록 중...';
+
+        fetch("/api/gonggu/", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + accessToken,
+          },
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert(data.message);
+            submitBtn.disabled = false;
+            submitBtn.textContent = "게시글 등록";
+          })
+          .catch((err) => {
+            alert("등록 중 오류가 발생했어요. 다시 시도해 주세요.");
+            submitBtn.disabled = false;
+            submitBtn.textContent = "게시글 등록";
+          });
+      });
+    </script>
+  </body>
+</html>

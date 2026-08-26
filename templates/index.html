@@ -28,7 +28,9 @@
       />
       <div class="flex content-center gap-2">
         {% if username %}
-        <button class="btn">공구 오픈</button>
+        <a href="/gonggu/create">
+          <button type="button">공구 오픈</button>
+        </a>
         <div class="content-center">{{username}}</div>
         {% else %}
         <button class="btn">로그인/회원가입</button>

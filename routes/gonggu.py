@@ -1,4 +1,6 @@
 from flask import Blueprint, jsonify, request
+import requests
+from bs4 import BeautifulSoup
 from .. import mongo
 
 bp = Blueprint('gonggu', __name__, url_prefix='/api/gonggu')
@@ -30,6 +32,31 @@ def get_gonggu_list(last_gonggu_id):
         print(e)
         return jsonify() 
     
+def get_product_image(product_link): 
+    try:
+        response = requests.get(product_link)
+        print("TEST_PRODUCT_RESPONSE =", response.status_code)
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        image_meta = soup.find(
+            "meta",
+            attrs={"property": "og:image"}
+        )
+        
+        print("찾은 이미지 태그:", image_meta)
+        
+        if image_meta:
+            image_url = image_meta.get("content")
+        else:
+            image_url = "/static/images/default_product.png"
+            
+    except Exception as e:
+        print("이미지 불러오기 실패:", e)
+        image_url = "/static/images/default_product.png"
+    
+    return image_url
+
 @bp.route('/', methods=['POST'])
 def create_gonggu():
     """
@@ -45,6 +72,7 @@ def create_gonggu():
     unit_type=request.form.get('unit_type')
     unit_price=int(request.form.get('unit_price'))
     product_link=request.form.get('product_link')
+    image_url=get_product_image(product_link)
     kakao_link=request.form.get('kakao_link')
     description=request.form.get('description')
     status='recruiting'
@@ -63,6 +91,7 @@ def create_gonggu():
         "product_link": product_link,
         "kakao_link": kakao_link,
         "description": description,
+        "image_url": image_url,
         "status": status
     }
     

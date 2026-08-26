@@ -173,7 +173,46 @@ def create_gonggu():
     })
 
 
+# 공구 상세페이지 사용자 상태 확인
+@bp.route('/<gonggu_id>/participation-status', methods=['GET'])
+@jwt_required()
+def get_participation_status(gonggu_id):
+    current_id = get_jwt_identity()
 
+    gonggu = mongo.db.gonggu.find_one(
+        {"_id": ObjectId(gonggu_id)}
+    )
+
+    if gonggu is None:
+        return jsonify({
+            "message": "존재하지 않는 공구입니다."
+        }), 404
+
+    # 작성자
+    if gonggu["author_id"] == current_id:
+        return jsonify({
+            "is_author": True,
+            "is_participant": False
+        }), 200
+
+    # 참여자인지 확인
+    participant = mongo.db.participants.find_one({
+        "gonggu_id": ObjectId(gonggu_id),
+        "user_id": current_id
+    })
+
+    if participant:
+        return jsonify({
+            "is_author": False,
+            "is_participant": True,
+            "kakao_link": gonggu["kakao_link"]
+        }), 200
+
+    # 미참여자
+    return jsonify({
+        "is_author": False,
+        "is_participant": False
+    }), 200
 
 # 공구 참여
 @bp.route('/<gonggu_id>/participants', methods=['POST'])

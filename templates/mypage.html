@@ -84,7 +84,7 @@
 
             $.ajax({
                 type: 'GET',
-                url: '/api/gonggu/participated',
+                url: '/api/gonggu/my_gonggu',
                 // JWT 토큰을 헤더에 담아서 보냅니다 (로그인 유저 확인용)
                 headers: {
                     "Authorization": "Bearer " + token
@@ -148,12 +148,12 @@
 
             $.ajax({
                 type: 'GET',
-                url: '/api/gonggu/created',
+                url: '/api/gonggu/my_created_gonggu',
                 headers: {
                     "Authorization": "Bearer " + token
                 },
                 success: function (response) {
-                    const list = response.my_gonggu_list;
+                    const list = response.my_created_gonggu_list;
                     const tbody = $('#created-list');
 
                     tbody.empty();
@@ -184,11 +184,11 @@
                                 <div class="dropdown dropdown-right">
                                     <div tabindex="0" role="button" class="btn btn-sm m-1">${statusText}</div>
                                     <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-2 shadow-sm">
-                                        <li><a onclick="changeStatus('${item.gonggu_id}', 'recruiting')">공구 신청 중</a></li>
-                                        <li><a onclick="changeStatus('${item.gonggu_id}', 'closed')">공구 신청 마감</a></li>
-                                        <li><a onclick="changeStatus('${item.gonggu_id}', 'ordered')">주문 완료</a></li>
-                                        <li><a onclick="changeStatus('${item.gonggu_id}', 'shipping')">배송 완료</a></li>
-                                        <li><a onclick="changeStatus('${item.gonggu_id}', 'completed')">공구 완료</a></li>
+                                        <li><a onclick="changeStatus('${item._id}', 'recruiting')">공구 신청 중</a></li>
+                                        <li><a onclick="changeStatus('${item._id}', 'closed')">공구 신청 마감</a></li>
+                                        <li><a onclick="changeStatus('${item._id}', 'ordered')">주문 완료</a></li>
+                                        <li><a onclick="changeStatus('${item._id}', 'shipping')">배송 완료</a></li>
+                                        <li><a onclick="changeStatus('${item._id}', 'completed')">공구 완료</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -213,7 +213,7 @@
             const token = localStorage.getItem('accessToken');
 
             $.ajax({
-                type: 'PATCH', // 일부 데이터를 수정할 때는 PATCH 또는 PUT을 사용합니다.
+                type: 'PATCH', 
                 url: `/api/gonggu/${gongguId}/status`,
                 headers: {
                     "Authorization": "Bearer " + token

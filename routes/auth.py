@@ -51,8 +51,10 @@ def login():
         return jsonify({'msg': '비밀번호가 일치하지 않습니다'}), 401
 
     # 3. JWT 토큰 생성
-    access_token = create_access_token(identity=user['_id'])
-    refresh_token = create_refresh_token(identity=user['_id'])
+    # identity를 username이 아니라 id로 설정하여, 토큰에서 유저를 식별할 때 username이 아닌 id를 사용
+    # find 할 때 id로 찾기. str<->objectId 변환 주의~
+    access_token = create_access_token(identity=str(user['_id']))
+    refresh_token = create_refresh_token(identity=str(user['_id']))
 
     response = jsonify({
             'data': {
@@ -71,8 +73,8 @@ def login():
 @bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True) # 리프레시 토큰 있는지 확인
 def refresh():
-    current_user = get_jwt_identity()
-    new_access_token = create_access_token(identity=current_user)
+    current_id = get_jwt_identity()
+    new_access_token = create_access_token(identity=current_id)
     return jsonify({
         'data': {
             'accessToken': new_access_token,

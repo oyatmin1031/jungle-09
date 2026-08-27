@@ -339,6 +339,7 @@
         <script>
             let currentSortBy = "latest"; // 초기 정렬 기준 설정
             let currentStatus = ""; // 초기 상태 설정
+            let currentKeyword = ""; // 초기 검색어 설정
 
             $(document).ready(function () {
                 currentStatus = getCurrentStatus();
@@ -387,6 +388,14 @@
                 $("#sort-btn").text($(this).text());
                 $(".grid").empty();
                 showGongguList();
+            });
+
+            $("#search-input").on("keyup", function (e) {
+                if (e.keyCode === 13) {
+                  currentKeyword = $(this).val().trim();
+                  $(".grid").empty();
+                  showGongguList();
+                }
             });
 
             // 현재 선택된 상태를 가져오는 함수
@@ -478,12 +487,17 @@
                                 <div class="card-actions">
                                 ${statusBadge}
                                 </div>
-                                <div class="">
+                                <div class="card-actions">
+                                    <span class="text-sm opacity-60">신청 수량: </span>
+                                    <span class="text-sm font-semibold">${item.current_quantity ?? 0} / ${item.max_quantity ?? "제한 없음"}</span>
+                                </div>
+
+                                </div>
+                                <div class="w-full flex justify-end">
                                     <span class="text-sm opacity-60">마감일: </span>
                                     <span class="text-sm font-semibold">${item.deadline ?? "없음"}</span>
                                 </div>
-                            </div>
-                          </div>
+                              </div>
                           `;
                         $(".grid").append(card);
                     }
@@ -496,6 +510,7 @@
                 if (currentStatus) data.status = currentStatus;
                 if (lastId) data.last_id = lastId;
                 if (lastValue) data.last_value = lastValue;
+                if (currentKeyword) data.keyword = currentKeyword;
 
                 return $.ajax({
                     url: "/api/gonggu/list",

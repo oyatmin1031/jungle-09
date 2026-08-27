@@ -1,4 +1,5 @@
 from datetime import datetime
+from tokenize import VBAR
 
 from bson.objectid import ObjectId
 from flask import Blueprint, jsonify, request
@@ -7,6 +8,7 @@ from bs4 import BeautifulSoup
 from .. import mongo
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from bson import ObjectId
+import re
 
 bp = Blueprint('gonggu', __name__, url_prefix='/api/gonggu')
 
@@ -36,7 +38,8 @@ def get_gonggu_list():
         last_id = request.args.get('last_id', default=None, type=str) # ObjectId 기준 페이징을 위한 값
         last_value = request.args.get('last_value', default=None) # 마감일 기준 페이징을 위한 값
         status = request.args.get('status', default=None, type=str) # 공구 상태 필터링을 위한 값
-        sort_by = request.args.get('sort_by', default="latest", type=str) # 정렬 기준 (latest, deadline)
+        sort_by = request.args.get('sort_by', default="latest", type=str) # 정렬 기준 (latest, deadline
+        keyword = request.args.get('keyword', default="", type=str).strip() # 검색 키워드
 
         if last_id in (None, "", "undefined"):
             last_id = None
@@ -51,6 +54,16 @@ def get_gonggu_list():
         if status: # status 값이 존재하면 query에 status 조건 추가
             query['status'] = status
 
+        if keyword:
+            pattern = re.escape(keyword)  # 특수문자 이스케이프 처리
+            query['$and'] = [{
+                '$or': [
+                    {"title": {"$regex": pattern, "$options": "i"}},
+                    {"product_name": {"$regex": pattern, "$options": "i"}},
+                    {"discription": {"$regex": pattern, "$options": "i"}}
+                ]
+            }]
+
         if sort_by == 'latest': # 최신순 정렬
             if last_id:
                 query['_id'] = {"$lt": ObjectId(last_id)}
@@ -62,10 +75,12 @@ def get_gonggu_list():
             last_deadline = (last_value or "")[:10]  # "2026-08-26T12:00:00"여도 날짜만
 
             if last_id and last_deadline:
-                query["$or"] = [
-                    {"deadline": {"$gt": last_deadline}},
-                    {"deadline": last_deadline, "_id": {"$gt": ObjectId(last_id)}},
-                ]
+                query.setdefault("$and", []).append({
+                    "$or": [
+                        {"deadline": {"$gt": last_deadline}},  # 마감일보다 큰 경우
+                        {"deadline": last_deadline, "_id": {"$gt": ObjectId(last_id)}} # 같은 마감일이라면 _id보다 큰 경우 우선
+                    ]
+                })
             else:
                 query["deadline"] = {"$gte": today}
 
@@ -171,7 +186,7 @@ def create_gonggu():
     return jsonify({
         "message":"공구 개설 성공"
     })
-    
+
 # 공구 참여자 목록 조회
 @bp.route('/<gonggu_id>/participants', methods=['GET'])
 @jwt_required()
@@ -220,7 +235,7 @@ def get_participants(gonggu_id):
         "current_quantity": gonggu.get("current_quantity", 0),
         "max_quantity": gonggu["max_quantity"]
     }), 200
-    
+
 # 공구 상세페이지 사용자 상태 확인
 @bp.route('/<gonggu_id>/participation-status', methods=['GET'])
 @jwt_required()
@@ -296,7 +311,7 @@ def participate_gonggu(gonggu_id):
             return jsonify({
                "message": "이미 참여한 공구입니다."
             }), 400
-            
+
         max_quantity = gonggu["max_quantity"]
 
         participant_data = {
@@ -380,7 +395,7 @@ def get_my_gonggu_list():
 
         # 참여한 내역을 딕셔너리로 변환
         quantity_map = {item["gonggu_id"]: item["quantity"] for item in participations}
-        
+
         # 게시글 리스트 조회
         gonggu_ids = list(quantity_map.keys())
         gonggu_list = list(mongo.db.gonggu.find(
@@ -391,7 +406,7 @@ def get_my_gonggu_list():
         result = []
         for gonggu in gonggu_list:
             g_id = gonggu.get("_id")
-            
+
             item = {
                 "_id": str(g_id),
                 "title": gonggu.get("title"),
@@ -419,14 +434,14 @@ def get_my_created_gonggu_list():
         current_id = get_jwt_identity() # 로그인한 유저 아이디
         # 내가 개설한 공구 리스트 조회
         gonggu_list = list(mongo.db.gonggu.find({"author_id": current_id}))
-        
+
         result = []
         for gonggu in gonggu_list:
             gonggu["_id"] = str(gonggu["_id"]) # ObjectId를 문자열로 변환
             result.append(gonggu)
-            
+
         return jsonify({"my_created_gonggu_list": result})
-    
+
     except Exception as e:
         print(e)
         return jsonify({"message": "서버 에러가 발생했습니다."}), 500

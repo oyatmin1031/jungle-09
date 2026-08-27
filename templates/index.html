@@ -1,288 +1,473 @@
 <!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/output.css')}}"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+        />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css')}}" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+        <script
+            src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+            crossorigin="anonymous"
+        ></script>
+        <title>정글09</title>
+    </head>
 
+    <body>
+        <header class="my-4 w-5xl m-auto flex justify-between">
+            <h2 class="text-2xl content-center">정글 09</h2>
+            <input
+                id="search-input"
+                type="text"
+                placeholder="검색어를 입력하세요"
+                class="input"
+            />
+            <div class="flex content-center gap-2">
+                {% if nickname %}
 
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"
-    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-  <title>정글09</title>
-</head>
-
-<body>
-  <header class="my-4 w-5xl m-auto flex justify-between">
-    <h2 class="text-2xl content-center">정글 09</h2>
-    <input id="search-input" type="text" placeholder="검색어를 입력하세요" class="input" />
-    <div class="flex content-center gap-2">
-      {% if nickname %}
-
-      <button class="btn content-center" onclick="location.href='/gonggu/create'">공구 오픈</button>
-      <!-- <div class="content-center">{{nickname}}</div> -->
-      <div class="dropdown dropdown-start">
-        <div tabindex="0" role="button" class="btn m-1">{{nickname}}</div>
-        <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-          <li><a href="/mypage">마이페이지</a></li>
-          <li><a id="logout-btn">로그아웃</a></li>
-        </ul>
-      </div>
-
-      {% else %}
-      <button class="btn" onclick="location.href='/login'">로그인/회원가입</button>
-      {% endif %}
-
-    </div>
-  </header>
-  <main class="w-5xl m-auto">
-    <div class="flex">
-      <div class="flex flex-col mx-2 p-3 flex-5">
-        <div class="flex justify-between">
-          <div id="status-tabs" class="tabs tabs-boxed content-center">
-            <label class="tab">
-              <input type="radio" name="status" value="" checked="checked" />
-              전체
-            </label>
-            <label class="tab">
-              <input type="radio" name="status" value="recruiting" />
-              신청 중
-            </label>
-            <label class="tab">
-              <input type="radio" name="status" value="closed" />
-              신청 마감
-            </label>
-            <label class="tab">
-              <input type="radio" name="status" value="ordered" />
-              주문 완료
-            </label>
-            <label class="tab">
-              <input type="radio" name="status" value="delivered" />
-              배송 완료
-            </label>
-            <label class="tab">
-              <input type="radio" name="status" value="completed" />
-              공구 완료
-            </label>
-          </div>
-          <button id="sort-btn" class="btn" popovertarget="popover-1" style="anchor-name: --anchor-1">
-            최신순
-          </button>
-          <ul class="dropdown dropdown-end menu w-52 rounded-box bg-base-100 shadow-sm" popover id="popover-1"
-            style="position-anchor: --anchor-1">
-            <li><a href="#" data-sort="latest">최신순</a></li>
-            <li>
-              <a href="#" data-sort="deadline">마감 임박순</a>
-            </li>
-          </ul>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2">
-          <!--공구 리스트 영역-->
-        </div>
-
-        <button id="load-more" class="btn btn-circle justify-center m-3">
-          <i class="ti ti-arrow-narrow-down"></i>
-        </button>
-      </div>
-      <div class="flex flex-col flex-2 gap-2">
-        <!-- name of each tab group should be unique -->
-        <div class="tabs tabs-lift h-80">
-          <label class="tab">
-            <input type="radio" name="my_tabs_4" checked="checked" />
-            <i class="ti ti-bell"></i>
-            알림
-          </label>
-          <div id="notif-list" class="tab-content bg-base-100 border-base-300 shadow-md p-6">
-            Tab content 1
-          </div>
-
-          <label class="tab">
-            <input type="radio" name="my_tabs_4" />
-            신청한 공구
-          </label>
-          <div class="tab-content bg-base-100 border-base-300 shadow-md p-2 overflow-auto">
-            {% if not participated_gonggu %}
-            <p>신청한 공구가 없습니다.</p>
-            {% else %}
-            <ul class="list bg-base-100 ">
-              {% for gonggu in participated_gonggu %}
-              <!-- 로그인된 상태면 배열 형태로 오는데 로그인 안된 상태면 None이 들어와서 오류남. 그래서 if문으로 처리함 -->
-              <li class="list-row cursor-pointer" onclick="location.href = '/gonggu/{{gonggu._id}}'">
-                <div class="flex">
-                  <div class="flex-1 justify-between">
-                    <div class="truncate">title</div>
-                    <!--TODO:  공구 상태에 따라 다른 배지 표시 -->
-                    <div class="badge badge-success">
-                      진행중
+                <button
+                    class="btn content-center"
+                    onclick="location.href = '/gonggu/create'"
+                >
+                    공구 오픈
+                </button>
+                <!-- <div class="content-center">{{nickname}}</div> -->
+                <div class="dropdown dropdown-start ">
+                    <div tabindex="0" role="button" class="btn content-center">
+                        {{nickname}}
                     </div>
-                  </div>
+                    <ul
+                        tabindex="-1"
+                        class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+                    >
+                        <li><a href="/mypage">마이페이지</a></li>
+                        <li><a id="logout-btn">로그아웃</a></li>
+                    </ul>
                 </div>
-              </li>
-              {% endfor %}
-            </ul>
-            {% endif %}
 
-          </div>
-
-          <label class="tab">
-            <input type="radio" name="my_tabs_4" />
-            작성한 공구
-          </label>
-          <div class="tab-content bg-base-100 border-base-300 shadow-md p-2 overflow-auto">
-            {% if created_gonggu is none %}
-            <p>작성한 공구가 없습니다.</p>
-            {% else %}
-            <ul class="list bg-base-100 overflow-auto">
-              {% for gonggu in created_gonggu %}
-              <!-- 로그인된 상태면 배열 형태로 오는데 로그인 안된 상태면 None이 들어와서 오류남. 그래서 if문으로 처리함 -->
-
-              <li class="list-row cursor-pointer" onclick="location.href = '/gonggu/{{gonggu._id}}'">
-                <div class="flex">
-                  <div class="flex-1 justify-between">
-                    <div class="truncate">{{gonggu.title}}</div>
-                    <div class="badge badge-success">
-                      진행중
+                {% else %}
+                <button class="btn" onclick="location.href = '/login'">
+                    로그인/회원가입
+                </button>
+                {% endif %}
+            </div>
+        </header>
+        <main class="w-5xl m-auto">
+            <div class="flex">
+                <div class="flex flex-col mx-2 p-3 flex-5 gap-2">
+                    <div class="flex justify-between">
+                        <div
+                            id="status-tabs"
+                            class="tabs tabs-boxed content-center"
+                        >
+                            <label class="tab">
+                                <input
+                                    type="radio"
+                                    name="status"
+                                    value=""
+                                    checked="checked"
+                                />
+                                전체
+                            </label>
+                            <label class="tab">
+                                <input
+                                    type="radio"
+                                    name="status"
+                                    value="recruiting"
+                                />
+                                신청 중
+                            </label>
+                            <label class="tab">
+                                <input
+                                    type="radio"
+                                    name="status"
+                                    value="closed"
+                                />
+                                신청 마감
+                            </label>
+                            <label class="tab">
+                                <input
+                                    type="radio"
+                                    name="status"
+                                    value="ordered"
+                                />
+                                주문 완료
+                            </label>
+                            <label class="tab">
+                                <input
+                                    type="radio"
+                                    name="status"
+                                    value="delivered"
+                                />
+                                배송 완료
+                            </label>
+                            <label class="tab">
+                                <input
+                                    type="radio"
+                                    name="status"
+                                    value="completed"
+                                />
+                                공구 완료
+                            </label>
+                        </div>
+                        <button
+                            id="sort-btn"
+                            class="btn"
+                            popovertarget="popover-1"
+                            style="anchor-name: --anchor-1"
+                        >
+                            최신순
+                        </button>
+                        <ul
+                            class="dropdown dropdown-end menu w-52 rounded-box bg-base-100 shadow-sm"
+                            popover
+                            id="popover-1"
+                            style="position-anchor: --anchor-1"
+                        >
+                            <li><a href="#" data-sort="latest">최신순</a></li>
+                            <li>
+                                <a href="#" data-sort="deadline">마감 임박순</a>
+                            </li>
+                        </ul>
                     </div>
-                  </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <!--공구 리스트 영역-->
+                    </div>
+
+                    <div class="w-full flex justify-center">
+                    <button
+                        id="load-more"
+                        class="btn btn-circle justify-center m-3"
+                    >
+                        <i class="ti ti-arrow-narrow-down"></i>
+                    </button>
+                    </div>
                 </div>
-              </li>
-              {% endfor %}
-            </ul>
-            {% endif %}
-          </div>
-        </div>
-        <ul id="ranking-list" class="list bg-base-100 rounded-box border border-base-300 shadow-md">
-          <li class="p-4 pb-2 tracking-wide">인기 공구 순위</li>
+                <div class="flex flex-col flex-2 gap-2">
+                    <!-- name of each tab group should be unique -->
+                    <div class="tabs tabs-lift h-80">
+                        <label class="tab">
+                            <input
+                                type="radio"
+                                name="my_tabs_4"
+                                checked="checked"
+                            />
+                            <i class="ti ti-bell"></i>
+                            알림
+                        </label>
+                        <div
+                            id="notif-list"
+                            class="tab-content bg-base-100 border-base-300 shadow-md p-2"
+                        >
+                            {% if not nickname %}
+                            <p>로그인이 필요합니다.</p>
+                            {% else %}
+                            <p class="">알림이 없습니다.</p>
+                            {% endif %}
+                        </div>
 
-          <li class="list-row gap-2">
-            <div class="text-2xl font-thin opacity-30 tabular-nums content-center">
-              01
+                        <label class="tab">
+                            <input type="radio" name="my_tabs_4" />
+                            신청한 공구
+                        </label>
+                        <div
+                            class="tab-content bg-base-100 border-base-300 shadow-md p-2 overflow-auto"
+                        >
+                            {% if not participated_gonggu %}
+                            <p>신청한 공구가 없습니다.</p>
+                            {% else %}
+                            <ul class="list bg-base-100">
+                                {% for gonggu in participated_gonggu %}
+                                <!-- 로그인된 상태면 배열 형태로 오는데 로그인 안된 상태면 None이 들어와서 오류남. 그래서 if문으로 처리함 -->
+                                <li
+                                    class="list-row cursor-pointer"
+                                    onclick="location.href = '/gonggu/{{gonggu._id}}'"
+                                >
+                                    <div class="flex">
+                                        <div class="flex-1 justify-between">
+                                            <div class="truncate">title</div>
+                                            {% if gonggu.status == 'recruiting'
+                                            %}
+                                            <div class="badge badge-success">
+                                                진행중
+                                            </div>
+                                            {% elif gonggu.status == 'closed'%}
+                                            <div class="badge badge-info">
+                                                Info
+                                            </div>
+                                            {% elif gonggu.status == 'completed'
+                                            %}
+                                            <div class="badge bg-gray-600">
+                                                Neutral
+                                            </div>
+                                            {% elif gonggu.status == 'ordered'
+                                            or gonggu.status == 'delivered' %}
+                                            <div class="badge badge-warning">
+                                                Warning
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+
+                        <label class="tab">
+                            <input type="radio" name="my_tabs_4" />
+                            작성한 공구
+                        </label>
+                        <div
+                            class="tab-content bg-base-100 border-base-300 shadow-md p-2 overflow-auto"
+                        >
+                            {% if not created_gonggu %}
+                            <p>작성한 공구가 없습니다.</p>
+                            {% else %}
+                            <ul class="list bg-base-100 overflow-auto">
+                                {% for gonggu in created_gonggu %}
+                                <!-- 로그인된 상태면 배열 형태로 오는데 로그인 안된 상태면 None이 들어와서 오류남. 그래서 if문으로 처리함 -->
+
+                                <li
+                                    class="list-row cursor-pointer"
+                                    onclick="location.href = '/gonggu/{{gonggu._id}}'"
+                                >
+                                    <div class="flex">
+                                        <div class="flex-1 justify-between">
+                                            <div class="truncate">
+                                                {{gonggu.title}}
+                                            </div>
+                                            <div class="badge badge-success">
+                                                진행중
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <ul
+                        id="ranking-list"
+                        class="list bg-base-100 rounded-box border border-base-300 shadow-md"
+                    >
+                        <li class="p-4 pb-2 tracking-wide">인기 공구 순위</li>
+
+                        <li class="list-row gap-2">
+                            <div
+                                class="text-2xl font-thin opacity-30 tabular-nums content-center"
+                            >
+                                01
+                            </div>
+                            <div>
+                                <img
+                                    class="size-10 rounded-box"
+                                    alt="Tailwind CSS list item"
+                                    src="https://img.daisyui.com/images/profile/demo/1@94.webp"
+                                />
+                            </div>
+                            <div class="list-col-grow">
+                                <div>Dio Lupa</div>
+                                <div
+                                    class="text-xs uppercase font-semibold opacity-60"
+                                >
+                                    Remaining Reason
+                                </div>
+                            </div>
+                        </li>
+
+                        <li class="list-row">
+                            <div
+                                class="text-4xl font-thin opacity-30 tabular-nums"
+                            >
+                                02
+                            </div>
+                            <div>
+                                <img
+                                    class="size-10 rounded-box"
+                                    alt="Tailwind CSS list item"
+                                    src="https://img.daisyui.com/images/profile/demo/4@94.webp"
+                                />
+                            </div>
+                            <div class="list-col-grow">
+                                <div>Ellie Beilish</div>
+                                <div
+                                    class="text-xs uppercase font-semibold opacity-60"
+                                >
+                                    Bears of a fever
+                                </div>
+                            </div>
+                        </li>
+
+                        <li class="list-row">
+                            <div
+                                class="text-4xl font-thin opacity-30 tabular-nums"
+                            >
+                                03
+                            </div>
+                            <div>
+                                <img
+                                    class="size-10 rounded-box"
+                                    alt="Tailwind CSS list item"
+                                    src="https://img.daisyui.com/images/profile/demo/3@94.webp"
+                                />
+                            </div>
+                            <div class="list-col-grow">
+                                <div>Sabrino Gardener</div>
+                                <div
+                                    class="text-xs uppercase font-semibold opacity-60"
+                                >
+                                    Cappuccino
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
-            <div>
-              <img class="size-10 rounded-box" alt="Tailwind CSS list item"
-                src="https://img.daisyui.com/images/profile/demo/1@94.webp" />
-            </div>
-            <div class="list-col-grow">
-              <div>Dio Lupa</div>
-              <div class="text-xs uppercase font-semibold opacity-60">
-                Remaining Reason
-              </div>
-            </div>
-          </li>
+        </main>
 
-          <li class="list-row">
-            <div class="text-4xl font-thin opacity-30 tabular-nums">
-              02
-            </div>
-            <div>
-              <img class="size-10 rounded-box" alt="Tailwind CSS list item"
-                src="https://img.daisyui.com/images/profile/demo/4@94.webp" />
-            </div>
-            <div class="list-col-grow">
-              <div>Ellie Beilish</div>
-              <div class="text-xs uppercase font-semibold opacity-60">
-                Bears of a fever
-              </div>
-            </div>
-          </li>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script>
+            let currentSortBy = "latest"; // 초기 정렬 기준 설정
+            let currentStatus = ""; // 초기 상태 설정
+            let currentKeyword = ""; // 초기 검색어 설정
 
-          <li class="list-row">
-            <div class="text-4xl font-thin opacity-30 tabular-nums">
-              03
-            </div>
-            <div>
-              <img class="size-10 rounded-box" alt="Tailwind CSS list item"
-                src="https://img.daisyui.com/images/profile/demo/3@94.webp" />
-            </div>
-            <div class="list-col-grow">
-              <div>Sabrino Gardener</div>
-              <div class="text-xs uppercase font-semibold opacity-60">
-                Cappuccino
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </main>
+            $(document).ready(function () {
+                currentStatus = getCurrentStatus();
+                showGongguList();
+            });
 
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script>
-    let currentSortBy = "latest"; // 초기 정렬 기준 설정
-    let currentStatus = ""; // 초기 상태 설정
+            // 로그아웃 버튼 클릭 이벤트 처리
+            const logoutBtn = document.getElementById("logout-btn");
 
-    $(document).ready(function () {
-      currentStatus = getCurrentStatus();
-      showGongguList();
-    });
+            if (logoutBtn) {
+                logoutBtn.addEventListener("click", function () {
+                    // 브라우저(로컬 스토리지)에 저장된 액세스 토큰 삭제
+                    localStorage.removeItem("accessToken");
 
-    // 로그아웃 버튼 클릭 이벤트 처리
-    const logoutBtn = document.getElementById('logout-btn');
+                    // 백엔드 API로 로그아웃 요청 (쿠키 삭제용)
+                    fetch("/api/auth/logout", {
+                        method: "POST", // 백엔드 설정에 맞게 POST 사용
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            alert(data.msg); // "로그아웃 성공" 알림창 띄우기
+                            window.location.href = "/"; // 메인 페이지(또는 로그인 페이지)로 이동
+                        })
+                        .catch((error) => {
+                            console.error("로그아웃 에러:", error);
+                            // 혹시 에러가 나더라도 이미 로컬 스토리지 토큰은 지웠으므로 메인으로 튕겨줍니다.
+                            window.location.href = "/";
+                        });
+                });
+            }
 
+            // 상태 탭 변경 이벤트 처리
+            $("#status-tabs input[name=status]").on("change", function () {
+                currentStatus = $(this).val();
+                $(".grid").empty();
+                showGongguList();
+            });
 
+            // 정렬 버튼 클릭 이벤트 처리
+            $("#popover-1 a").on("click", function (e) {
+                e.preventDefault();
+                currentSortBy = $(this).data("sort");
+                $("#sort-btn").text($(this).text());
+                $(".grid").empty();
+                showGongguList();
+            });
 
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function () {
-        // 브라우저(로컬 스토리지)에 저장된 액세스 토큰 삭제
-        localStorage.removeItem('accessToken');
+            $("#search-input").on("keyup", function (e) {
+                if (e.keyCode === 13) {
+                  currentKeyword = $(this).val().trim();
+                  $(".grid").empty();
+                  showGongguList();
+                }
+            });
 
-        // 백엔드 API로 로그아웃 요청 (쿠키 삭제용)
-        fetch('/api/auth/logout', {
-          method: 'POST', // 백엔드 설정에 맞게 POST 사용
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-          .then(response => response.json())
-          .then(data => {
-            alert(data.msg); // "로그아웃 성공" 알림창 띄우기
-            window.location.href = '/'; // 메인 페이지(또는 로그인 페이지)로 이동
-          })
-          .catch(error => {
-            console.error('로그아웃 에러:', error);
-            // 혹시 에러가 나더라도 이미 로컬 스토리지 토큰은 지웠으므로 메인으로 튕겨줍니다.
-            window.location.href = '/';
-          });
-      });
-    }
+            // 현재 선택된 상태를 가져오는 함수
+            function getCurrentStatus() {
+                return $("input[name=status]:checked").val() || "";
+            }
 
-    // 상태 탭 변경 이벤트 처리
-    $("#status-tabs input[name=status]").on("change", function () {
-      currentStatus = $(this).val();
-      $(".grid").empty();
-      showGongguList();
-    });
+            // "더보기" 버튼 클릭 이벤트 처리
+            $("#load-more").click(function () {
+                loadMoreGonggu();
+            });
 
-    // 정렬 버튼 클릭 이벤트 처리
-    $("#popover-1 a").on("click", function (e) {
-      e.preventDefault();
-      currentSortBy = $(this).data("sort");
-      $("#sort-btn").text($(this).text());
-      $(".grid").empty();
-      showGongguList();
-    });
+            function showGongguList(lastId, lastValue) {
+                getGongguList(lastId, lastValue).then(function (response) {
+                    const list = response.gonggu_list || [];
+                    const hasMore = list.length === 22;
 
-    // 현재 선택된 상태를 가져오는 함수
-    function getCurrentStatus() {
-      return $("input[name=status]:checked").val() || "";
-    }
+                    $("#load-more").toggleClass("hidden", !hasMore); // 더보기 버튼 표시 여부 결정
 
-    // "더보기" 버튼 클릭 이벤트 처리
-    $("#load-more").click(function () {
-      loadMoreGonggu();
-    });
+                    const toShow = hasMore ? list.slice(0, 21) : list;
 
-    function showGongguList(lastId, lastValue) {
-      getGongguList(lastId, lastValue).then(function (response) {
-        const list = response.gonggu_list || [];
-        const hasMore = list.length === 22;
-        const toShow = hasMore ? list.slice(0, 21) : list;
+                    for (let i = 0; i < toShow.length; i++) {
+                        const item = toShow[i];
+                        switch (item.status) {
+                                        case "recruiting":
+                                            statusBadge = `
+                                                <div class="badge badge-success">
+                                                    모집 중
+                                                </div>
+                                            `;
+                                            break;
 
-        for (let i = 0; i < toShow.length; i++) {
-          const item = toShow[i];
-          const card = `
+                                        case "closed":
+                                            statusBadge = `
+                                                <div class="badge badge-warning">
+                                                    모집 마감
+                                                </div>
+                                            `;
+                                            break;
+
+                                        case "ordered":
+                                            statusBadge = `
+                                                <div class="badge badge-info">
+                                                    주문 완료
+                                                </div>
+                                            `;
+                                            break;
+
+                                        case "delivered":
+                                            statusBadge = `
+                                                <div class="badge badge-primary">
+                                                    배송 완료
+                                                </div>
+                                            `;
+                                            break;
+
+                                        case "completed":
+                                            statusBadge = `
+                                                <div class="badge badge-neutral">
+                                                    공구 완료
+                                                </div>
+                                            `;
+                                            break;
+
+                                        default:
+                                            statusBadge = `
+                                                <div class="badge badge-outline">
+                                                    ${item.status}
+                                                </div>
+                                            `;
+                                    }
+                        const card = `
                             <div class="card bg-base-100 w-55 h-60 shadow-sm cursor-pointer"
                               data-gonggu-id="${item.id}"
                               data-deadline="${item.deadline ?? ""}"
@@ -298,112 +483,123 @@
                             <div class="card-body p-3">
                               <h2 class="card-title">${item.title}</h2>
                               <p>${item.description}</p>
-                            </div>
-                          </div>
+                              <div class="w-full flex justify-between items-center">
+                                <div class="card-actions">
+                                ${statusBadge}
+                                </div>
+                                <div class="card-actions">
+                                    <span class="text-sm opacity-60">신청 수량: </span>
+                                    <span class="text-sm font-semibold">${item.current_quantity ?? 0} / ${item.max_quantity ?? "제한 없음"}</span>
+                                </div>
+
+                                </div>
+                                <div class="w-full flex justify-end">
+                                    <span class="text-sm opacity-60">마감일: </span>
+                                    <span class="text-sm font-semibold">${item.deadline ?? "없음"}</span>
+                                </div>
+                              </div>
                           `;
-          $(".grid").append(card);
-        }
-      });
-    }
-    // TODO: 마지막 목록까지 로드되면 "더보기" 버튼을 숨기거나 비활성화하는 로직 추가 필요
-    function getGongguList(lastId, lastValue) {
-      const data = { sort_by: currentSortBy };
+                        $(".grid").append(card);
+                    }
+                });
+            }
 
-      if (currentStatus) data.status = currentStatus;
-      if (lastId) data.last_id = lastId;
-      if (lastValue) data.last_value = lastValue;
+            function getGongguList(lastId, lastValue) {
+                const data = { sort_by: currentSortBy };
 
-      return $.ajax({
-        url: "/api/gonggu/list",
-        type: "GET",
-        dataType: "json",
-        data: data,
-      });
-    }
+                if (currentStatus) data.status = currentStatus;
+                if (lastId) data.last_id = lastId;
+                if (lastValue) data.last_value = lastValue;
+                if (currentKeyword) data.keyword = currentKeyword;
 
-    function loadMoreGonggu() {
-      const $last = $(".grid .card[data-gonggu-id]").last();
-      showGongguList(
-        $last.attr("data-gonggu-id"),
-        $last.attr("data-deadline"),
-      );
-    }
+                return $.ajax({
+                    url: "/api/gonggu/list",
+                    type: "GET",
+                    dataType: "json",
+                    data: data,
+                });
+            }
 
-    // 서버로 접속하려면 이벤트를 생성하는 서버측 스크립트를 URI로 지정하여 EventSource 객체를 생성한다.
-    const eventSource = new EventSource("/api/sse/stream");
+            function loadMoreGonggu() {
 
-    // 서버로부터 데이터가 왔을 때 호출되는 이벤트 리스너
-    eventSource.addEventListener('message', function(event) {
-        const data = JSON.parse(event.data);
-        console.log('Received data:', data);
-        // 여기서 데이터를 처리하고 UI를 업데이트할 수 있음.
-    });
+                const $last = $(".grid .card[data-gonggu-id]").last();
+                showGongguList(
+                    $last.attr("data-gonggu-id"),
+                    $last.attr("data-deadline"),
+                );
+            }
 
+            // 서버로 접속하려면 이벤트를 생성하는 서버측 스크립트를 URI로 지정하여 EventSource 객체를 생성한다.
+            const eventSource = new EventSource("/api/sse/stream");
 
-    // connection 되었을 때 호출되는 이벤트 리스너
-    eventSource.addEventListener('open', function(e) {
-      console.log('connection 성공')
-    })
+            // 서버로부터 데이터가 왔을 때 호출되는 이벤트 리스너
+            eventSource.addEventListener("message", function (event) {
+                const data = JSON.parse(event.data);
+                console.log("Received data:", data);
+                // 여기서 데이터를 처리하고 UI를 업데이트할 수 있음.
+            });
 
+            // connection 되었을 때 호출되는 이벤트 리스너
+            eventSource.addEventListener("open", function (e) {
+                console.log("connection 성공");
+            });
 
-    eventSource.addEventListener("notification", (e)=>{
-      console.log('notification connection 성공')
+            eventSource.addEventListener("notification", (e) => {
+                console.log("notification connection 성공");
 
-      const payload = JSON.parse(e.data);
-      const notifList = Array.isArray(payload) ? payload : [payload];
-      renderNotifList(notifList);
-    })
+                const payload = JSON.parse(e.data);
+                const notifList = Array.isArray(payload) ? payload : [payload];
+                renderNotifList(notifList);
+            });
 
-    eventSource.addEventListener("ranking", (e)=>{
-      console.log('ranking connection 성공')
-        const rankingList = JSON.parse(e.data);
-        renderRankingList(rankingList);
-    })
+            eventSource.addEventListener("ranking", (e) => {
+                console.log("ranking connection 성공");
+                const rankingList = JSON.parse(e.data);
+                renderRankingList(rankingList);
+            });
 
-    // error 발생했을 때 호출되는 이벤트 리스너
-    eventSource.addEventListener('error', function(e) {
-      if (e.readState == EventSource.CLOSED) {
-        console.log('Connection was closed.');
-      } else {
-        console.error('An error occurred:', e);
-      }
-    })
+            // error 발생했을 때 호출되는 이벤트 리스너
+            eventSource.addEventListener("error", function (e) {
+                if (e.readState == EventSource.CLOSED) {
+                    console.log("Connection was closed.");
+                } else {
+                    console.error("An error occurred:", e);
+                }
+            });
 
-    function renderNotifList(notif_list) {
-        const notifContainer = document.querySelector(
-            "#notif-list",
-        );
-        if (!notifContainer) return;
+            function renderNotifList(notif_list) {
+                const notifContainer = document.querySelector("#notif-list");
+                if (!notifContainer) return;
 
-        // 첫 알림일 경우, 기존 알림 초기화
-        if (notifContainer.dataset.ready !== "1") {
-            notifContainer.innerHTML = "";
-            notifContainer.dataset.ready = "1";
-        }
+                // 첫 알림일 경우, 기존 알림 초기화
+                if (notifContainer.dataset.ready !== "1") {
+                    notifContainer.innerHTML = "";
+                    notifContainer.dataset.ready = "1";
+                }
 
-        notif_list.forEach((item) => {
-            const listItem = document.createElement("div");
-            listItem.className = "notif-item p-2 border-b border-base-300";
-            listItem.textContent = item.message;
-            notifContainer.prepend(listItem);
-        });
-    }
+                notif_list.forEach((item) => {
+                    const listItem = document.createElement("div");
+                    listItem.className =
+                        "notif-item p-2 border-b border-base-300";
+                    listItem.textContent = item.message;
+                    notifContainer.prepend(listItem);
+                });
+            }
 
-    function renderRankingList(ranking_list) {
-        const rankingContainer = document.querySelector(
-            "#ranking-list",
-        );
+            function renderRankingList(ranking_list) {
+                const rankingContainer =
+                    document.querySelector("#ranking-list");
 
-        // 기존 랭킹 리스트 초기화
-        rankingContainer.innerHTML = `
+                // 기존 랭킹 리스트 초기화
+                rankingContainer.innerHTML = `
             <li class="p-4 pb-2 tracking-wide">인기 공구 순위</li>
         `;
 
-        // 새로운 랭킹 리스트 생성
-        ranking_list.forEach((item, index) => {
-            const listItem = document.createElement("li");
-            listItem.className = "list-row gap-2";
-            listItem.innerHTML = `
+                // 새로운 랭킹 리스트 생성
+                ranking_list.forEach((item, index) => {
+                    const listItem = document.createElement("li");
+                    listItem.className = "list-row gap-2";
+                    listItem.innerHTML = `
                 <div class="text-2xl opacity-30 tabular-nums content-center">
                     ${String(index + 1).padStart(2, "0")}
                 </div>
@@ -414,11 +610,9 @@
                     <div>${item.title}</div>
                 </div>
             `;
-            rankingContainer.appendChild(listItem);
-        });
-    }
-
-  </script>
-</body>
-
+                    rankingContainer.appendChild(listItem);
+                });
+            }
+        </script>
+    </body>
 </html>

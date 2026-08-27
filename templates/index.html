@@ -474,8 +474,13 @@
                             <div class="card-body p-3">
                               <h2 class="card-title">${item.title}</h2>
                               <p>${item.description}</p>
-                                <div class="card-actions justify-end">
+                              <div class="w-full flex justify-between items-center">
+                                <div class="card-actions">
                                 ${statusBadge}
+                                </div>
+                                <div class="">
+                                    <span class="text-sm opacity-60">마감일: </span>
+                                    <span class="text-sm font-semibold">${item.deadline ?? "없음"}</span>
                                 </div>
                             </div>
                           </div>

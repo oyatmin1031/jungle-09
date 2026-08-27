@@ -1,4 +1,5 @@
 from datetime import datetime
+from tokenize import VBAR
 
 from bson.objectid import ObjectId
 from flask import Blueprint, jsonify, request
@@ -7,6 +8,7 @@ from bs4 import BeautifulSoup
 from .. import mongo
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from bson import ObjectId
+import re
 
 bp = Blueprint('gonggu', __name__, url_prefix='/api/gonggu')
 
@@ -36,7 +38,8 @@ def get_gonggu_list():
         last_id = request.args.get('last_id', default=None, type=str) # ObjectId 기준 페이징을 위한 값
         last_value = request.args.get('last_value', default=None) # 마감일 기준 페이징을 위한 값
         status = request.args.get('status', default=None, type=str) # 공구 상태 필터링을 위한 값
-        sort_by = request.args.get('sort_by', default="latest", type=str) # 정렬 기준 (latest, deadline)
+        sort_by = request.args.get('sort_by', default="latest", type=str) # 정렬 기준 (latest, deadline
+        keyword = request.args.get('keyword', default="", type=str).strip() # 검색 키워드
 
         if last_id in (None, "", "undefined"):
             last_id = None
@@ -51,6 +54,16 @@ def get_gonggu_list():
         if status: # status 값이 존재하면 query에 status 조건 추가
             query['status'] = status
 
+        if keyword:
+            pattern = re.escape(keyword)  # 특수문자 이스케이프 처리
+            query['$and'] = [{
+                '$or': [
+                    {"title": {"$regex": pattern, "$options": "i"}},
+                    {"product_name": {"$regex": pattern, "$options": "i"}},
+                    {"discription": {"$regex": pattern, "$options": "i"}}
+                ]
+            }]
+
         if sort_by == 'latest': # 최신순 정렬
             if last_id:
                 query['_id'] = {"$lt": ObjectId(last_id)}
@@ -62,10 +75,12 @@ def get_gonggu_list():
             last_deadline = (last_value or "")[:10]  # "2026-08-26T12:00:00"여도 날짜만
 
             if last_id and last_deadline:
-                query["$or"] = [
-                    {"deadline": {"$gt": last_deadline}},
-                    {"deadline": last_deadline, "_id": {"$gt": ObjectId(last_id)}},
-                ]
+                query.setdefault("$and", []).append({
+                    "$or": [
+                        {"deadline": {"$gt": last_deadline}},  # 마감일보다 큰 경우
+                        {"deadline": last_deadline, "_id": {"$gt": ObjectId(last_id)}} # 같은 마감일이라면 _id보다 큰 경우 우선
+                    ]
+                })
             else:
                 query["deadline"] = {"$gte": today}
 
@@ -89,31 +104,31 @@ def get_gonggu_list():
 
     except Exception as e:
         print(e)
-        return jsonify({"error": "An error occurred while fetching gonggu list"}), 500 
-    
-def get_product_image(product_link): 
+        return jsonify({"error": "An error occurred while fetching gonggu list"}), 500
+
+def get_product_image(product_link):
     try:
         response = requests.get(product_link)
         print("TEST_PRODUCT_RESPONSE =", response.status_code)
-        
+
         soup = BeautifulSoup(response.text, 'html.parser')
-        
+
         image_meta = soup.find(
             "meta",
             attrs={"property": "og:image"}
         )
-        
+
         print("찾은 이미지 태그:", image_meta)
-        
+
         if image_meta:
             image_url = image_meta.get("content")
         else:
             image_url = "/static/images/default_product.png"
-            
+
     except Exception as e:
         print("이미지 불러오기 실패:", e)
         image_url = "/static/images/default_product.png"
-    
+
     return image_url
 
 @bp.route('/', methods=['POST'])
@@ -126,7 +141,7 @@ def create_gonggu():
     user_id = get_jwt_identity()
     user = mongo.db.users.find_one({'_id': ObjectId(user_id)})
     nickname = user["nickname"]
-    
+
     # 2. 폼 데이터 받기
     title=request.form.get('title')
     product_name=request.form.get('product_name')
@@ -142,7 +157,7 @@ def create_gonggu():
     description=request.form.get('description')
     status='recruiting'
 
-    
+
     # 3. 게시글 딕셔너리 만들기
     gonggu_data = {
         "author_id": user_id,
@@ -162,18 +177,105 @@ def create_gonggu():
         "image_url": image_url,
         "status": status
     }
-    
+
     # 4. MongoDB에 insert
     result = mongo.db.gonggu.insert_one(gonggu_data)
     print(gonggu_data)
-    
+
     # 5. MongoDB가 생성한 _id를 응답으로 반환
     return jsonify({
         "message":"공구 개설 성공"
     })
-    
 
+# 공구 참여자 목록 조회
+@bp.route('/<gonggu_id>/participants', methods=['GET'])
+@jwt_required()
+def get_participants(gonggu_id):
+    current_id = get_jwt_identity()
 
+    gonggu = mongo.db.gonggu.find_one(
+        {"_id": ObjectId(gonggu_id)}
+    )
+
+    # 공구가 없는 경우
+    if gonggu is None:
+        return jsonify({
+            "message": "존재하지 않는 공구입니다."
+        }), 404
+
+    # 작성자가 아닌 경우
+    if gonggu["author_id"] != current_id:
+        return jsonify({
+            "message": "참여자 관리 권한이 없습니다."
+        }), 403
+
+    # 해당 공구에 참여한 사람들 조회
+    participants = list(mongo.db.participants.find({
+        "gonggu_id": ObjectId(gonggu_id)
+    }))
+
+    print(participants)
+
+    # 참여자 닉네임 + 신청 수량 만들기
+    result = []
+
+    for participant in participants:
+        user = mongo.db.users.find_one({
+            "_id": ObjectId(participant["user_id"])
+        })
+
+        result.append({
+            "nickname": user["nickname"],
+            "quantity": participant["quantity"]
+        })
+
+    # 프론트에 결과 보내기
+    return jsonify({
+        "participants": result,
+        "current_quantity": gonggu.get("current_quantity", 0),
+        "max_quantity": gonggu["max_quantity"]
+    }), 200
+
+# 공구 상세페이지 사용자 상태 확인
+@bp.route('/<gonggu_id>/participation-status', methods=['GET'])
+@jwt_required()
+def get_participation_status(gonggu_id):
+    current_id = get_jwt_identity()
+
+    gonggu = mongo.db.gonggu.find_one(
+        {"_id": ObjectId(gonggu_id)}
+    )
+
+    if gonggu is None:
+        return jsonify({
+            "message": "존재하지 않는 공구입니다."
+        }), 404
+
+    # 작성자
+    if gonggu["author_id"] == current_id:
+        return jsonify({
+            "is_author": True,
+            "is_participant": False
+        }), 200
+
+    # 참여자인지 확인
+    participant = mongo.db.participants.find_one({
+        "gonggu_id": ObjectId(gonggu_id),
+        "user_id": current_id
+    })
+
+    if participant:
+        return jsonify({
+            "is_author": False,
+            "is_participant": True,
+            "kakao_link": gonggu["kakao_link"]
+        }), 200
+
+    # 미참여자
+    return jsonify({
+        "is_author": False,
+        "is_participant": False
+    }), 200
 
 # 공구 참여
 @bp.route('/<gonggu_id>/participants', methods=['POST'])
@@ -209,7 +311,7 @@ def participate_gonggu(gonggu_id):
             return jsonify({
                "message": "이미 참여한 공구입니다."
             }), 400
-            
+
         max_quantity = gonggu["max_quantity"]
 
         participant_data = {
@@ -217,6 +319,7 @@ def participate_gonggu(gonggu_id):
             "user_id": current_id,
             "quantity": quantity
         }
+
         result=mongo.db.gonggu.update_one(
             {
                 "_id": ObjectId(gonggu_id),
@@ -235,11 +338,31 @@ def participate_gonggu(gonggu_id):
                 "message": "남은 수량보다 많이 신청할 수 없습니다."
             }), 400
         # participants 테이블에 넣기
-        mongo.db.participants.insert_one(participant_data)        
+        mongo.db.participants.insert_one(participant_data)
+        author_id = gonggu["author_id"]
+
+        mongo.db.notifications.insert_one({
+            "user_id": current_id,
+            "gonggu_id": gonggu_id,
+            "message": f"공구 참여 신청이 완료되었습니다. 수량: {quantity}",
+            "timestamp": datetime.now()
+        })
+        user_nickname = mongo.db.users.find_one({"_id": ObjectId(current_id)})["nickname"]
+        mongo.db.notifications.insert_one({
+            "user_id": author_id,
+            "gonggu_id": gonggu_id,
+            "message": f"{user_nickname}님이 공구에 참여했습니다. 수량: {quantity}",
+            "timestamp": datetime.now()
+        })
+
         return jsonify({
             "message": "공구 신청이 완료되었습니다!",
             "kakao_link": gonggu["kakao_link"]
         }), 201
+
+
+
+
     except Exception as e:
         print(f"참여 에러: {e}")
         return jsonify({"message": "서버 에러가 발생했습니다."}), 500
@@ -252,7 +375,7 @@ def participate_gonggu(gonggu_id):
 # 내가 참여한 공구 리스트 조회
 @bp.route('/my_gonggu', methods=['GET'])
 @jwt_required()
-def get_my_gonggu_list():  
+def get_my_gonggu_list():
     """
     내가 참여한 공구 리스트 조회 API
     """
@@ -262,7 +385,7 @@ def get_my_gonggu_list():
 
         # 내가 참여한 내역(ID와 수량) 가져오기
         participations = list(mongo.db.participants.find(
-            {"user_id": current_id}, 
+            {"user_id": ObjectId(current_id)},
             {"gonggu_id": 1, "quantity": 1, "_id": 0}
         ))
 
@@ -272,7 +395,7 @@ def get_my_gonggu_list():
 
         # 참여한 내역을 딕셔너리로 변환
         quantity_map = {item["gonggu_id"]: item["quantity"] for item in participations}
-        
+
         # 게시글 리스트 조회
         gonggu_ids = list(quantity_map.keys())
         gonggu_list = list(mongo.db.gonggu.find(
@@ -283,7 +406,7 @@ def get_my_gonggu_list():
         result = []
         for gonggu in gonggu_list:
             g_id = gonggu.get("_id")
-            
+
             item = {
                 "_id": str(g_id),
                 "title": gonggu.get("title"),
@@ -303,7 +426,7 @@ def get_my_gonggu_list():
 # 내가 개설한 공구 리스트 조회
 @bp.route('/my_created_gonggu', methods=['GET'])
 @jwt_required()
-def get_my_created_gonggu_list():  
+def get_my_created_gonggu_list():
     """
     내가 개설한 공구 리스트 조회 API
     """
@@ -311,14 +434,14 @@ def get_my_created_gonggu_list():
         current_id = get_jwt_identity() # 로그인한 유저 아이디
         # 내가 개설한 공구 리스트 조회
         gonggu_list = list(mongo.db.gonggu.find({"author_id": current_id}))
-        
+
         result = []
         for gonggu in gonggu_list:
             gonggu["_id"] = str(gonggu["_id"]) # ObjectId를 문자열로 변환
             result.append(gonggu)
-            
+
         return jsonify({"my_created_gonggu_list": result})
-    
+
     except Exception as e:
         print(e)
         return jsonify({"message": "서버 에러가 발생했습니다."}), 500
@@ -337,7 +460,7 @@ def update_gonggu_status(gonggu_id):
 
         # 데이터베이스 업데이트 (해당 공구의 작성자가 본인일 때만 수정되도록 조건 추가)
         result = mongo.db.gonggu.update_one(
-            {"_id": ObjectId(gonggu_id), "author_id": current_id}, 
+            {"_id": ObjectId(gonggu_id), "author_id": current_id},
             {"$set": {"status": new_status}}
         )
 

@@ -1,82 +1,224 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>공구 상세</title>
-</head>
+    <head>
+        <meta charset="UTF-8" />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/output.css')}}"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+        />
 
-<body>
-    <h1>{{ gonggu.title }}</h1>
-    <p>제품명: {{ gonggu.product_name }}</p>
-    <p>작성자: {{ gonggu.author_nickname }}</p>
-    <img src="{{ gonggu.image_url }}">
-    <p>카테고리: {{ gonggu.category }}</p>
-    <p>마감일: {{ gonggu.deadline }}</p>
-    <p>마감 수량: {{ gonggu.max_quantity }}</p>
+        <script
+            src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+            crossorigin="anonymous"
+        ></script>
+        <title>공구 상세</title>
+    </head>
 
-    <p>
-        주문 단위:
-        {{ gonggu.unit_amount }}{{ gonggu.unit_type }}
-    </p>
+    <body>
+        <header class="my-4 w-5xl m-auto flex justify-between">
+            <a class="content-center" href="/">
+                <h2 class="text-2xl content-center">정글 09</h2>
+            </a>
 
-    <p>가격: {{ gonggu.unit_price }}원</p>
-    <p>상품 링크:
-    <a href="{{ gonggu.product_link }}" target="_blank">
-        상품 보러가기
+            <div class="flex content-center gap-2">
+                {% if nickname %}
+
+                <button
+                    class="btn content-center"
+                    onclick="location.href = '/gonggu/create'"
+                >
+                    공구 오픈
+                </button>
+                <!-- <div class="content-center">{{nickname}}</div> -->
+                <div class="dropdown dropdown-start">
+                    <div tabindex="0" role="button" class="btn content-center">
+                        {{nickname}}
+                    </div>
+                    <ul
+                        tabindex="-1"
+                        class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+                    >
+                        <li><a href="/mypage">마이페이지</a></li>
+                        <li><a id="logout-btn">로그아웃</a></li>
+                    </ul>
+                </div>
+
+                {% else %}
+                <button class="btn" onclick="location.href = '/login'">
+                    로그인/회원가입
+                </button>
+                {% endif %}
+            </div>
+        </header>
+        <main class="max-w-2xl mx-auto px-6 py-5">
+            <div class="flex justify-between">
+                <h1 class="text-2xl">{{ gonggu.title }}</h1>
+            </div>
+            <div class="flex gap-4 my-4">
+                <img class="w-72 h-72" src="{{ gonggu.image_url }}" />
+                <div class="flex flex-col text-lg">
+                    <div class="flex w-full flex-col">
+                      <div class="grid h-auto">
+                          <p class="">제품명: {{ gonggu.product_name }}</p>
+                          <p class="content-center">카테고리: {{ gonggu.category }}</p>
+                          <p class="">마감일: {{ gonggu.deadline }}</p>
+                          <p>마감 수량: {{ gonggu.max_quantity }}</p>
+
+                          <p>주문 단위: {{ gonggu.unit_amount }}{{ gonggu.unit_type }}</p>
+
+                          <p>가격: {{ gonggu.unit_price }}원</p>
+                          <p>
+                              상품 링크:
+                              <a class="link" href="{{ gonggu.product_link }}" target="_blank">
+                                  상품 보러가기
+                              </a>
+                          </p>
+                      </div>
+                      <div class="divider"></div>
+                      <div class="">1 주문당 {{ gonggu.unit_amount }}{{gonggu.unit_type}}, {{ gonggu.unit_price }}원</div>
+                    </div>
+                </div>
+
+            </div>
+
+            {% if is_participant %}
+            <p>
+                오픈채팅:
+                <a href="{{ gonggu.kakao_link }}" target="_blank">
+                    오픈카톡 참여하기
+                </a>
+            </p>
+            {% endif %}
+            <div>
+                <label for="quantity">참여 수량</label>
+                <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    min="1"
+                    value="1"
+                />
+            </div>
+
+            <div>
+                <p>
+                    총 금액:
+                    <span id="total-price">{{ gonggu.unit_price }}</span>원
+                </p>
+            </div>
+
+            <button type="button" id="join-button" class="btn">공구 참여하기</button>
+
+            <div class="flex flex-col">
+                <p>상세설명</p>
+                <p>{{ gonggu.description }}</p>
+            </div>
+
+            <p>상태: {{ gonggu.status }}</p>
+        </main>
+
+<!-- 참여 성공 팝업 -->
+<dialog id="success-modal">
+    <h3>참여가 완료되었습니다.</h3>
+    <p>오픈 채팅에 참여해 주세요.</p>
+
+    <a id="success-kakao-link" target="_blank">
+        오픈 채팅 링크
     </a>
-    </p>
 
-    <p>오픈채팅:
-        <a href="{{ gonggu.kakao_link }}" target="_blank">
-            오픈카톡 참여하기
-        </a>
-    </p>
-    <div>
-        <label for="quantity">참여 수량</label>
-        <input
-            type="number"
-            id="quantity"
-            name="quantity"
-            min="1"
-            value="1"
-        >
-    </div>
+    <form method="dialog">
+        <button>확인</button>
+    </form>
+</dialog>
 
-    <div>
-        <p>
-            총 금액:
-            <span id="total-price">{{ gonggu.unit_price }}</span>원
-        </p>
-    </div>
+<!-- 참여 실패 팝업 -->
+<dialog id="fail-modal">
+    <h3>참여에 실패하였습니다.</h3>
 
-    <button type="button" id="join-button">
-        공구 참여하기
-    </button>
+    <p id="fail-message"></p>
 
-    <p>상세설명: {{ gonggu.description }}</p>
-
-    <p>상태: {{ gonggu.status }}</p>
+    <form method="dialog">
+        <button>확인</button>
+    </form>
+</dialog>
 </body>
 <script>
     const joinButton = document.getElementById('join-button');
     const quantityInput = document.getElementById('quantity');
     const totalPrice = document.getElementById('total-price');
 
-    const unitPrice = {{ gonggu.unit_price }};
+    const unitPrice = "{{ gonggu.unit_price }}";
+    const gongguId = "{{ gonggu_id }}";
+    const accessToken = localStorage.getItem('accessToken');
+
+    let userState = 'none';
+    let kakaoLink = null;
+
+    // 참여 수량에 따라 총 금액 계산
     quantityInput.addEventListener('input', function () {
         const quantity = quantityInput.value;
-
         totalPrice.textContent = (unitPrice * quantity).toLocaleString();
     });
 
-    const gongguId = "{{ gonggu_id }}";
-    
-    joinButton.addEventListener('click', function () {
-        const quantity = quantityInput.value;
-        const accessToken = localStorage.getItem('accessToken');
+    // 페이지 열릴 때 작성자 / 참여자 / 미참여자 상태 확인
+    fetch(`/api/gonggu/${gongguId}/participation-status`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + accessToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('사용자 상태:', data);
 
-        fetch(`/api/gonggu/${gongguId}/participants`, 
-        {
+        if (data.is_author) {
+            userState = 'author';
+            joinButton.textContent = '참여자 관리';
+
+        } else if (data.is_participant) {
+            userState = 'participant';
+            kakaoLink = data.kakao_link;
+            joinButton.textContent = '오픈 채팅 참여하기';
+
+        } else {
+            userState = 'none';
+            joinButton.textContent = '공구 참여하기';
+        }
+    })
+    .catch(error => {
+        console.error('상태 확인 오류:', error);
+    });
+
+    // 버튼 클릭 처리
+    joinButton.addEventListener('click', function () {
+
+        // 작성자
+        if (userState === 'author') {
+            fetch(`/api/gonggu/${gongguId}/participants`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
+            });
+
+            return;
+        }
+
+        // 이미 참여한 사람
+        if (userState === 'participant') {
+            window.open(kakaoLink, '_blank');
+            return;
+        }
+
+        // 미참여자 → 실제 공구 참여
+        const quantity = quantityInput.value;
+
+        fetch(`/api/gonggu/${gongguId}/participants`, {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + accessToken,
@@ -90,17 +232,35 @@
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
-                window.location.href = data.kakao_link;
+                kakaoLink = data.kakao_link;
 
+                userState = 'participant';
+                joinButton.textContent = '오픈 채팅 참여하기';
+
+                const successKakaoLink =
+                    document.getElementById('success-kakao-link');
+
+                successKakaoLink.href = kakaoLink;
+
+                document
+                    .getElementById('success-modal')
+                    .showModal();
+
+                console.log('변경 후 상태:', userState);
+                console.log('변경 후 버튼:', joinButton.textContent);
             } else {
-                alert('공구 참여에 실패했습니다: ' + data.message);
+                document.getElementById('fail-message').textContent =
+                    data.message;
+
+                document
+                    .getElementById('fail-modal')
+                    .showModal();
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('공구 참여 오류:', error);
             alert('공구 참여 중 오류가 발생했습니다.');
         });
-    });   
+    });
 </script>
 </html>

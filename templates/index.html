@@ -191,8 +191,10 @@
                                     class="list-row cursor-pointer"
                                     onclick="location.href = '/gonggu/{{gonggu._id}}'"
                                 >
+
                                     <div class="">
                                         <div class="flex w-full justify-between">
+
                                             <div class="truncate">{{gonggu.title}}</div>
                                             {% if gonggu.status == 'recruiting'
                                             %}
@@ -200,18 +202,18 @@
                                                 진행중
                                             </div>
                                             {% elif gonggu.status == 'closed'%}
-                                            <div class="badge badge-info">
-                                                Info
+                                            <div class="badge badge-warning">
+                                                모집 마감
                                             </div>
                                             {% elif gonggu.status == 'completed'
                                             %}
                                             <div class="badge bg-gray-600">
-                                                Neutral
+                                                공구 완료
                                             </div>
                                             {% elif gonggu.status == 'ordered'
                                             or gonggu.status == 'delivered' %}
-                                            <div class="badge badge-warning">
-                                                Warning
+                                            <div class="badge badge-info">
+                                                주문 완료
                                             </div>
                                             {% endif %}
                                         </div>
@@ -220,6 +222,8 @@
                                 {% endfor %}
                             </ul>
                             {% endif %}
+                            <br/>
+                            <button class="btn btn-ghost" onclick="location.href='/mypage'">더보기</button>
                         </div>
 
                         <label class="tab">

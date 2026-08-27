@@ -68,7 +68,10 @@
                           <p class="content-center">카테고리: {{ gonggu.category }}</p>
                           <p class="">마감일: {{ gonggu.deadline }}</p>
                           <p>마감 수량: {{ gonggu.max_quantity }}</p>
-
+                          <p>
+                                남은 수량:
+                                <span id="remaining-quantity">{{ gonggu.max_quantity - gonggu.current_quantity }}</span>
+                          </p>  
                           <p>주문 단위: {{ gonggu.unit_amount }}{{ gonggu.unit_type }}</p>
 
                           <p>가격: {{ gonggu.unit_price }}원</p>
@@ -94,15 +97,33 @@
                 </a>
             </p>
             {% endif %}
-            <div>
-                <label for="quantity">참여 수량</label>
-                <input
-                    type="number"
-                    id="quantity"
-                    name="quantity"
-                    min="1"
-                    value="1"
-                />
+            <div class="flex items-center gap-3">
+                <span>참여 수량:</span>
+                <div class="flex items-center border border-base-300 rounded-lg">
+                    <button
+                        type="button"
+                        id="minus-button"
+                        class="btn btn-ghost btn-sm text-lg"
+                    >
+                        -
+                    </button>
+                    <input
+                        type="number"
+                        id="quantity"
+                        name="quantity"
+                        value="1"
+                        min="1"
+                        class="w-12 text-center outline-none"
+                        readonly
+                    />
+                    <button
+                        type="button"
+                        id="plus-button"
+                        class="btn btn-ghost btn-sm text-lg"
+                    >
+                        +
+                    </button>
+                </div>
             </div>
 
             <div>
@@ -146,24 +167,91 @@
         <button>확인</button>
     </form>
 </dialog>
+<!-- 참여자 관리 팝업 -->
+<dialog id="participants-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="text-xl font-bold mb-4">참여자 관리</h3>
+
+        <p class="mb-4">
+            참여 현황:
+            <span id="participants-current-quantity">0</span>
+            /
+            <span id="participants-max-quantity">0</span>
+        </p>
+
+        <!-- 참여자 목록 -->
+        <div id="participants-list" class="flex flex-col gap-2">
+        </div>
+
+        <div class="modal-action">
+            <form method="dialog">
+                <button class="btn">닫기</button>
+            </form>
+        </div>
+    </div>
+</dialog>
 </body>
 <script>
     const joinButton = document.getElementById('join-button');
     const quantityInput = document.getElementById('quantity');
     const totalPrice = document.getElementById('total-price');
 
-    const unitPrice = "{{ gonggu.unit_price }}";
+    const unitPrice = Number("{{ gonggu.unit_price }}");
     const gongguId = "{{ gonggu_id }}";
     const accessToken = localStorage.getItem('accessToken');
 
+    const minusButton = document.getElementById('minus-button');
+    const plusButton = document.getElementById('plus-button');
+
     let userState = 'none';
-    let kakaoLink = null;
+    let kakaoLink = null;    
+
+    function updateTotalPrice() {
+        const quantity = Number(quantityInput.value);
+
+        totalPrice.textContent =
+            (unitPrice * quantity).toLocaleString();
+    }
+    minusButton.addEventListener('click', function () {
+        const quantity = Number(quantityInput.value);
+
+        if (quantity > 1) {
+            quantityInput.value = quantity - 1;
+            updateTotalPrice();
+        }
+    });
+
+    plusButton.addEventListener('click', function () {
+        const quantity = Number(quantityInput.value);
+
+        quantityInput.value = quantity + 1;
+        updateTotalPrice();
+    });
 
     // 참여 수량에 따라 총 금액 계산
     quantityInput.addEventListener('input', function () {
-        const quantity = quantityInput.value;
-        totalPrice.textContent = (unitPrice * quantity).toLocaleString();
+        const quantity = Number(quantityInput.value);
+
+        totalPrice.textContent =
+            (unitPrice * quantity).toLocaleString();
     });
+
+    //
+    function updateRemainingQuantity() {
+        fetch(`/api/gonggu/${gongguId}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('공구 조회 데이터:', data);
+            const remainingQuantity =  data.gonggu.max_quantity - data.gonggu.current_quantity;
+            document.getElementById('remaining-quantity').textContent = remainingQuantity;
+            console.log('남은 수량:', remainingQuantity);
+        })
+        .catch(error => {
+            console.error('남은 수량 업데이트 오류:', error);
+        });
+    }
+    updateRemainingQuantity();
+    setInterval(updateRemainingQuantity, 5000);
 
     // 페이지 열릴 때 작성자 / 참여자 / 미참여자 상태 확인
     fetch(`/api/gonggu/${gongguId}/participation-status`, {
@@ -184,7 +272,8 @@
             userState = 'participant';
             kakaoLink = data.kakao_link;
             joinButton.textContent = '오픈 채팅 참여하기';
-
+                
+            updateRemainingQuantity();
         } else {
             userState = 'none';
             joinButton.textContent = '공구 참여하기';
@@ -194,29 +283,59 @@
         console.error('상태 확인 오류:', error);
     });
 
+
     // 버튼 클릭 처리
     joinButton.addEventListener('click', function () {
 
-        // 작성자
+        // 작성자 → 참여자 목록 조회
         if (userState === 'author') {
+
             fetch(`/api/gonggu/${gongguId}/participants`, {
                 method: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + accessToken
                 }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('참여자 목록:', data);
+
+                // 참여 현항
+                document.getElementById('participants-current-quantity').textContent = data.current_quantity;
+                document.getElementById('participants-max-quantity').textContent = data.max_quantity;
+
+                const participantsList = document.getElementById('participants-list');
+                participantsList.innerHTML = ''; // 초기화
+
+                if (data.participants.length === 0) {
+                    participantsList.innerHTML = '<p>참여자가 없습니다.</p>';
+                } else {
+                    data.participants.forEach(participant => {
+                        const participantItem = document.createElement('div');
+                        participantItem.textContent = `${participant.nickname} - ${participant.quantity}개`;
+                        participantsList.appendChild(participantItem);
+                    });
+                }
+                document.getElementById('participants-modal').showModal();
+
+            })
+            .catch(error => {
+                console.error('참여자 조회 오류:', error);
             });
 
             return;
         }
 
-        // 이미 참여한 사람
+
+        // 이미 참여한 사용자 → 오픈채팅 이동
         if (userState === 'participant') {
             window.open(kakaoLink, '_blank');
             return;
         }
 
+
         // 미참여자 → 실제 공구 참여
-        const quantity = quantityInput.value;
+        const quantity = Number(quantityInput.value);
 
         fetch(`/api/gonggu/${gongguId}/participants`, {
             method: 'POST',
@@ -225,7 +344,7 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                quantity: Number(quantity)
+                quantity: quantity
             })
         })
         .then(async response => {
@@ -234,9 +353,11 @@
             if (response.ok) {
                 kakaoLink = data.kakao_link;
 
+                // 이제 참여자 상태로 변경
                 userState = 'participant';
                 joinButton.textContent = '오픈 채팅 참여하기';
 
+                // 성공 팝업의 카카오 링크 설정
                 const successKakaoLink =
                     document.getElementById('success-kakao-link');
 
@@ -246,8 +367,6 @@
                     .getElementById('success-modal')
                     .showModal();
 
-                console.log('변경 후 상태:', userState);
-                console.log('변경 후 버튼:', joinButton.textContent);
             } else {
                 document.getElementById('fail-message').textContent =
                     data.message;

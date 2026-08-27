@@ -165,7 +165,7 @@
                         </label>
                         <div
                             id="notif-list"
-                            class="tab-content bg-base-100 border-base-300 shadow-md p-2"
+                            class="tab-content bg-base-100 border-base-300 shadow-md p-2 overflow-auto"
                         >
                             {% if not nickname %}
                             <p>로그인이 필요합니다.</p>
@@ -191,9 +191,9 @@
                                     class="list-row cursor-pointer"
                                     onclick="location.href = '/gonggu/{{gonggu._id}}'"
                                 >
-                                    <div class="flex">
-                                        <div class="flex-1 justify-between">
-                                            <div class="truncate">title</div>
+                                    <div class="">
+                                        <div class="flex w-full justify-between">
+                                            <div class="truncate">{{gonggu.title}}</div>
                                             {% if gonggu.status == 'recruiting'
                                             %}
                                             <div class="badge badge-success">

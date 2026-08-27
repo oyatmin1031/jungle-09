@@ -94,15 +94,33 @@
                 </a>
             </p>
             {% endif %}
-            <div>
-                <label for="quantity">참여 수량</label>
-                <input
-                    type="number"
-                    id="quantity"
-                    name="quantity"
-                    min="1"
-                    value="1"
-                />
+            <div class="flex items-center gap-3">
+                <span>참여 수량:</span>
+                <div class="flex items-center border border-base-300 rounded-lg">
+                    <button
+                        type="button"
+                        id="minus-button"
+                        class="btn btn-ghost btn-sm text-lg"
+                    >
+                        -
+                    </button>
+                    <input
+                        type="number"
+                        id="quantity"
+                        name="quantity"
+                        value="1"
+                        min="1"
+                        class="w-12 text-center outline-none"
+                        readonly
+                    />
+                    <button
+                        type="button"
+                        id="plus-button"
+                        class="btn btn-ghost btn-sm text-lg"
+                    >
+                        +
+                    </button>
+                </div>
             </div>
 
             <div>
@@ -146,23 +164,28 @@
         <button>확인</button>
     </form>
 </dialog>
-a<dialog id="participants-modal">
-    <h3>참여자 관리</h3>
+<!-- 참여자 관리 팝업 -->
+<dialog id="participants-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="text-xl font-bold mb-4">참여자 관리</h3>
 
-    <p>
-        참여 현황:
-        <span id="participants-current-quantity">0</span>
-        /
-        <span id="participants-max-quantity">0</span>
-    </p>
+        <p class="mb-4">
+            참여 현황:
+            <span id="participants-current-quantity">0</span>
+            /
+            <span id="participants-max-quantity">0</span>
+        </p>
 
-    <div id="participants-list">
-        <!-- 참여자 목록이 여기에 들어감 -->
+        <!-- 참여자 목록 -->
+        <div id="participants-list" class="flex flex-col gap-2">
+        </div>
+
+        <div class="modal-action">
+            <form method="dialog">
+                <button class="btn">닫기</button>
+            </form>
+        </div>
     </div>
-
-    <form method="dialog">
-        <button type="submit">닫기</button>
-    </form>
 </dialog>
 </body>
 <script>
@@ -174,9 +197,35 @@ a<dialog id="participants-modal">
     const gongguId = "{{ gonggu_id }}";
     const accessToken = localStorage.getItem('accessToken');
 
+    const minusButton = document.getElementById('minus-button');
+    const plusButton = document.getElementById('plus-button');
+
     let userState = 'none';
     let kakaoLink = null;
 
+    
+
+    function updateTotalPrice() {
+        const quantity = Number(quantityInput.value);
+
+        totalPrice.textContent =
+            (unitPrice * quantity).toLocaleString();
+    }
+    minusButton.addEventListener('click', function () {
+        const quantity = Number(quantityInput.value);
+
+        if (quantity > 1) {
+            quantityInput.value = quantity - 1;
+            updateTotalPrice();
+        }
+    });
+
+    plusButton.addEventListener('click', function () {
+        const quantity = Number(quantityInput.value);
+
+        quantityInput.value = quantity + 1;
+        updateTotalPrice();
+    });
 
     // 1. 참여 수량에 따라 총 금액 계산
     quantityInput.addEventListener('input', function () {
@@ -237,6 +286,19 @@ a<dialog id="participants-modal">
                 document.getElementById('participants-current-quantity').textContent = data.current_quantity;
                 document.getElementById('participants-max-quantity').textContent = data.max_quantity;
 
+                const participantsList = document.getElementById('participants-list');
+                participantsList.innerHTML = ''; // 초기화
+
+                if (data.participants.length === 0) {
+                    participantsList.innerHTML = '<p>참여자가 없습니다.</p>';
+                } else {
+                    data.participants.forEach(participant => {
+                        const participantItem = document.createElement('div');
+                        participantItem.textContent = `${participant.nickname} - ${participant.quantity}개`;
+                        participantsList.appendChild(participantItem);
+                    });
+                }
+                document.getElementById('participants-modal').showModal();
 
             })
             .catch(error => {

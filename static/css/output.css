@@ -39,6 +39,7 @@
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
     --tracking-wide: 0.025em;
+    --radius-lg: 0.5rem;
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
   }
@@ -192,6 +193,149 @@
   }
 }
 @layer utilities {
+  @layer daisyui.l1.l2.l3 {
+    .modal {
+      pointer-events: none;
+      visibility: hidden;
+      position: fixed;
+      inset: 0px;
+      margin: 0px;
+      display: grid;
+      height: 100%;
+      max-height: none;
+      width: 100%;
+      max-width: none;
+      align-items: center;
+      justify-items: center;
+      background-color: transparent;
+      padding: 0px;
+      color: inherit;
+      transition: overlay 0.3s allow-discrete, visibility 0.3s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+      overflow: clip;
+      overscroll-behavior: contain;
+      z-index: 999;
+      scrollbar-gutter: auto;
+    }
+    .modal::backdrop {
+      display: none;
+    }
+    .modal[popover] {
+      inset: 0;
+      margin: 0;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      max-width: none;
+      max-height: none;
+    }
+    .modal[popover]::backdrop {
+      background-color: oklch(0% 0 0/ 0.4);
+      transition: background-color 0.3s ease-out;
+    }
+  }
+  @layer daisyui.l1.l2 {
+    .modal.modal-open {
+      pointer-events: auto;
+      visibility: visible;
+      opacity: 100%;
+      transition: visibility 0s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+      background-color: oklch(0% 0 0/ 0.4);
+    }
+    .modal.modal-open  > .modal-box {
+      translate: 0 0;
+      scale: 1;
+      opacity: 1;
+    }
+    :root:has(.modal.modal-open) {
+      --page-scroll-lock:  ;
+    }
+    @starting-style {
+      .modal.modal-open {
+        opacity: 0%;
+      }
+    }
+    .modal[open] {
+      pointer-events: auto;
+      visibility: visible;
+      opacity: 100%;
+      transition: visibility 0s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+      background-color: oklch(0% 0 0/ 0.4);
+    }
+    .modal[open]  > .modal-box {
+      translate: 0 0;
+      scale: 1;
+      opacity: 1;
+    }
+    :root:has(.modal[open]) {
+      --page-scroll-lock:  ;
+    }
+    @starting-style {
+      .modal[open] {
+        opacity: 0%;
+      }
+    }
+    .modal:popover-open {
+      pointer-events: auto;
+      visibility: visible;
+      opacity: 100%;
+      transition: visibility 0s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+      background-color: oklch(0% 0 0/ 0.4);
+    }
+    .modal:popover-open  > .modal-box {
+      translate: 0 0;
+      scale: 1;
+      opacity: 1;
+    }
+    :root:has(.modal:popover-open) {
+      --page-scroll-lock:  ;
+    }
+    @starting-style {
+      .modal:popover-open {
+        opacity: 0%;
+      }
+    }
+    .modal:target {
+      pointer-events: auto;
+      visibility: visible;
+      opacity: 100%;
+      transition: visibility 0s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+      background-color: oklch(0% 0 0/ 0.4);
+    }
+    .modal:target  > .modal-box {
+      translate: 0 0;
+      scale: 1;
+      opacity: 1;
+    }
+    :root:has(.modal:target) {
+      --page-scroll-lock:  ;
+    }
+    @starting-style {
+      .modal:target {
+        opacity: 0%;
+      }
+    }
+    .modal-toggle:checked + .modal {
+      pointer-events: auto;
+      visibility: visible;
+      opacity: 100%;
+      transition: visibility 0s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+      background-color: oklch(0% 0 0/ 0.4);
+    }
+    .modal-toggle:checked + .modal  > .modal-box {
+      translate: 0 0;
+      scale: 1;
+      opacity: 1;
+    }
+    :root:has(.modal-toggle:checked + .modal) {
+      --page-scroll-lock:  ;
+    }
+    @starting-style {
+      .modal-toggle:checked + .modal {
+        opacity: 0%;
+      }
+    }
+  }
   @layer daisyui.l1.l2.l3 {
     .tab:is(.tabs > .tab) {
       position: relative;
@@ -2626,6 +2770,103 @@
     grid-column: span 2 / span 2;
   }
   @layer daisyui.l1.l2.l3 {
+    .modal-box {
+      grid-column-start: 1;
+      grid-row-start: 1;
+      max-height: 100vh;
+      width: calc(11 / 12 * 100%);
+      max-width: 32rem;
+      background-color: var(--color-base-100);
+      padding: calc(0.25rem * 6);
+      transition: translate 0.3s ease-out, scale 0.3s ease-out, opacity 0.2s ease-out 0.05s, box-shadow 0.3s ease-out;
+      border-top-left-radius: var(--modal-tl, var(--radius-box));
+      border-top-right-radius: var(--modal-tr, var(--radius-box));
+      border-bottom-left-radius: var(--modal-bl, var(--radius-box));
+      border-bottom-right-radius: var(--modal-br, var(--radius-box));
+      scale: 95%;
+      opacity: 0;
+      box-shadow: oklch(0% 0 0/ 0.25) 0px 25px 50px -12px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+  }
+  @layer daisyui.l1.l2 {
+    .modal-top > .modal-box {
+      height: auto;
+      width: 100%;
+      max-width: none;
+      max-height: calc(100vh - 5em);
+      translate: 0 -100%;
+      scale: 1;
+      --modal-tl: 0;
+      --modal-tr: 0;
+      --modal-bl: var(--radius-box);
+      --modal-br: var(--radius-box);
+    }
+    .modal-middle > .modal-box {
+      height: auto;
+      width: calc(11 / 12 * 100%);
+      max-width: 32rem;
+      max-height: calc(100vh - 5em);
+      translate: 0 2%;
+      scale: 98%;
+      --modal-tl: var(--radius-box);
+      --modal-tr: var(--radius-box);
+      --modal-bl: var(--radius-box);
+      --modal-br: var(--radius-box);
+    }
+    .modal-bottom > .modal-box {
+      height: auto;
+      width: 100%;
+      max-width: none;
+      max-height: calc(100vh - 5em);
+      translate: 0 100%;
+      scale: 1;
+      --modal-tl: var(--radius-box);
+      --modal-tr: var(--radius-box);
+      --modal-bl: 0;
+      --modal-br: 0;
+    }
+    .modal-start > .modal-box {
+      height: 100vh;
+      max-height: none;
+      width: auto;
+      max-width: none;
+      translate: -100% 0;
+      scale: 1;
+      --modal-tl: 0;
+      --modal-tr: var(--radius-box);
+      --modal-bl: 0;
+      --modal-br: var(--radius-box);
+    }
+    [dir="rtl"] :is(.modal-start > .modal-box) {
+      translate: 100% 0;
+      --modal-tl: var(--radius-box);
+      --modal-tr: 0;
+      --modal-bl: var(--radius-box);
+      --modal-br: 0;
+    }
+    .modal-end > .modal-box {
+      height: 100vh;
+      max-height: none;
+      width: auto;
+      max-width: none;
+      translate: 100% 0;
+      scale: 1;
+      --modal-tl: var(--radius-box);
+      --modal-tr: 0;
+      --modal-bl: var(--radius-box);
+      --modal-br: 0;
+    }
+    [dir="rtl"] :is(.modal-end > .modal-box) {
+      translate: -100% 0;
+      --modal-tl: 0;
+      --modal-tr: var(--radius-box);
+      --modal-bl: 0;
+      --modal-br: var(--radius-box);
+    }
+  }
+  @layer daisyui.l1.l2.l3 {
     .divider {
       display: flex;
       height: calc(0.25rem * 4);
@@ -2817,6 +3058,12 @@
       font-weight: 600;
       margin-inline-end: auto;
     }
+    .modal-action {
+      margin-top: calc(0.25rem * 6);
+      display: flex;
+      justify-content: flex-end;
+      gap: calc(0.25rem * 2);
+    }
     .menu .dropdown-content {
       margin-top: calc(0.25rem * 2);
       padding: calc(0.25rem * 2);
@@ -2905,6 +3152,12 @@
       grid-template-columns: 1fr;
       grid-auto-rows: max-content;
     }
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: calc(0.25rem * 2);
+    }
     .card-title {
       display: flex;
       align-items: center;
@@ -2949,19 +3202,10 @@
       width: var(--size);
       height: var(--size);
     }
-    .btn-square {
-      padding-inline: 0px;
-      width: var(--size);
-      height: var(--size);
-    }
   }
   .size-10 {
     width: calc(var(--spacing) * 10);
     height: calc(var(--spacing) * 10);
-  }
-  .size-\[1\.2em\] {
-    width: 1.2em;
-    height: 1.2em;
   }
   .h-60 {
     height: calc(var(--spacing) * 60);
@@ -2985,6 +3229,9 @@
   }
   .w-5xl {
     width: var(--container-5xl);
+  }
+  .w-12 {
+    width: calc(var(--spacing) * 12);
   }
   .w-40 {
     width: calc(var(--spacing) * 40);
@@ -3099,6 +3346,9 @@
   .rounded-box {
     border-radius: var(--radius-box);
   }
+  .rounded-lg {
+    border-radius: var(--radius-lg);
+  }
   .border {
     border-style: var(--tw-border-style);
     border-width: 1px;
@@ -3117,6 +3367,12 @@
       background-color: var(--color-base-200);
       color: var(--color-base-content);
       background-image: none;
+    }
+    .badge-outline {
+      color: var(--badge-color);
+      --badge-bg: #0000;
+      background-image: none;
+      border-color: currentColor;
     }
   }
   .border-base-300 {
@@ -3333,6 +3589,14 @@
       --badge-color: var(--color-info);
       --badge-fg: var(--color-info-content);
     }
+    .badge-neutral {
+      --badge-color: var(--color-neutral);
+      --badge-fg: var(--color-neutral-content);
+    }
+    .badge-primary {
+      --badge-color: var(--color-primary);
+      --badge-fg: var(--color-primary-content);
+    }
     .badge-success {
       --badge-color: var(--color-success);
       --badge-fg: var(--color-success-content);
@@ -3341,6 +3605,10 @@
       --badge-color: var(--color-warning);
       --badge-fg: var(--color-warning-content);
     }
+  }
+  .outline-none {
+    --tw-outline-style: none;
+    outline-style: none;
   }
   @layer daisyui.l1.l2.l3 {
     .aura:has( > .checkbox,  > .toggle,  > .badge) {

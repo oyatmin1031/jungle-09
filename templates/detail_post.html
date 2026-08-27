@@ -68,7 +68,10 @@
                           <p class="content-center">카테고리: {{ gonggu.category }}</p>
                           <p class="">마감일: {{ gonggu.deadline }}</p>
                           <p>마감 수량: {{ gonggu.max_quantity }}</p>
-
+                          <p>
+                                남은 수량:
+                                <span id="remaining-quantity">{{ gonggu.max_quantity - gonggu.current_quantity }}</span>
+                          </p>  
                           <p>주문 단위: {{ gonggu.unit_amount }}{{ gonggu.unit_type }}</p>
 
                           <p>가격: {{ gonggu.unit_price }}원</p>
@@ -201,9 +204,7 @@
     const plusButton = document.getElementById('plus-button');
 
     let userState = 'none';
-    let kakaoLink = null;
-
-    
+    let kakaoLink = null;    
 
     function updateTotalPrice() {
         const quantity = Number(quantityInput.value);
@@ -227,7 +228,7 @@
         updateTotalPrice();
     });
 
-    // 1. 참여 수량에 따라 총 금액 계산
+    // 참여 수량에 따라 총 금액 계산
     quantityInput.addEventListener('input', function () {
         const quantity = Number(quantityInput.value);
 
@@ -235,8 +236,24 @@
             (unitPrice * quantity).toLocaleString();
     });
 
+    //
+    function updateRemainingQuantity() {
+        fetch(`/api/gonggu/${gongguId}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('공구 조회 데이터:', data);
+            const remainingQuantity =  data.gonggu.max_quantity - data.gonggu.current_quantity;
+            document.getElementById('remaining-quantity').textContent = remainingQuantity;
+            console.log('남은 수량:', remainingQuantity);
+        })
+        .catch(error => {
+            console.error('남은 수량 업데이트 오류:', error);
+        });
+    }
+    updateRemainingQuantity();
+    setInterval(updateRemainingQuantity, 5000);
 
-    // 2. 페이지 열릴 때 작성자 / 참여자 / 미참여자 상태 확인
+    // 페이지 열릴 때 작성자 / 참여자 / 미참여자 상태 확인
     fetch(`/api/gonggu/${gongguId}/participation-status`, {
         method: 'GET',
         headers: {
@@ -255,7 +272,8 @@
             userState = 'participant';
             kakaoLink = data.kakao_link;
             joinButton.textContent = '오픈 채팅 참여하기';
-
+                
+            updateRemainingQuantity();
         } else {
             userState = 'none';
             joinButton.textContent = '공구 참여하기';
@@ -266,7 +284,7 @@
     });
 
 
-    // 3. 버튼 클릭 처리
+    // 버튼 클릭 처리
     joinButton.addEventListener('click', function () {
 
         // 작성자 → 참여자 목록 조회
